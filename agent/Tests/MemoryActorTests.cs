@@ -69,6 +69,25 @@ internal static partial class MeterTests
         }
     }
 
+    public static async Task MemoryMalformedNameStartup(string directory)
+    {
+        string home = Path.Combine(directory, "memory-malformed-name");
+        using var listener = Listen();
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var agent = MemoryAgent(app, home, listener.Prefixes.Single());
+            Directory.CreateDirectory(Path.Combine(home, "memory"));
+            File.WriteAllText(Path.Combine(home, "memory/2026-11-16.md"), "INVALID_NAME_SENTINEL");
+            File.WriteAllText(Path.Combine(home, "memory/2026-11-16-1.md"), "VALID_MEMORY_SENTINEL");
+            // The GUI's initial status request must not kill the actor during its disk scan.
+            var status = await agent.WorkStatusAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            Check(status.Activity == AgentActivity.Idle, "Malformed memory filename stopped the actor");
+            await MemoryTurn(agent, listener, "VALID_MEMORY_SENTINEL", "INVALID_NAME_SENTINEL");
+        }
+        finally { app.Destroy(); }
+    }
+
     public static async Task MemoryPolicyRefusal(string directory)
     {
         string home = Path.Combine(directory, "memory-policy-refusal");
@@ -106,8 +125,29 @@ internal static partial class MeterTests
             }
             catch (OperationCanceledException) { }
             Check(!agent.MemorySettings().Soul.Disabled, "Pre-cancelled update changed policy");
-            Check(new MemorySettings().Conversation.Budget == 3000
-                && new MemorySettings().Session.Budget == 1500, "Wrong byte defaults");
+            // Defaults are byte policies, independent of model token capacity.
+            var defaults = new MemorySettings();
+            Check(defaults.Conversation.Budget == 100_000
+                && defaults.Soul.Budget == 5_000
+                && defaults.Memory.Budget == 10_000
+                && defaults.Archive64.Budget == 10_000
+                && defaults.Archive8.Budget == 10_000
+                && defaults.Session.Budget == 40_000, "Wrong byte defaults");
+            foreach (var band in new[] { defaults.Conversation, defaults.Soul,
+                defaults.Memory, defaults.Archive64, defaults.Archive8, defaults.Session })
+            {
+                Check(!band.Disabled, "Default band unexpectedly disabled");
+            }
+            var explicitPolicy = new MemorySettings(
+                conversation: new MemoryBandSettings(3000),
+                session: new MemoryBandSettings(1500, disabled: true),
+                soul: new MemoryBandSettings(0, disabled: true));
+            Check(explicitPolicy.Conversation.Budget == 3000
+                && explicitPolicy.Session.Budget == 1500
+                && explicitPolicy.Session.Disabled
+                && explicitPolicy.Soul.Budget == 5_000
+                && explicitPolicy.Soul.Disabled,
+                "Defaults replaced an explicit budget or disabled flag");
             bool invalid = false;
             try { _ = new MemorySettings(session: new MemoryBandSettings(long.MaxValue / 2 + 1)); }
             catch (ArgumentException) { invalid = true; }

@@ -2,8 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Ensemble;
 
-// Chat Completions has no field for replaying a provider's own reasoning block,
-// and an untyped member of a content array fails that endpoint's schema outright.
+// Chat Completions replays a provider's own reasoning block as message-level
+// fields, never as a content member: an untyped array element fails that
+// endpoint's schema outright, which is what turned resumed chats into 422s.
 internal static class ReasoningReplayTests
 {
     private static void Check(bool condition, string message)
@@ -35,9 +36,11 @@ internal static class ReasoningReplayTests
         var app = new Ensemble.Ensemble(TextWriter.Null);
         var chat = new Configuration(Vendor.OpenAI, "reasoning-replay-model", "http://127.0.0.1:1");
         var target = chat.Target();
-        // Both shapes this program has really written: the field name the endpoint
-        // returned, and the part shape this codec records when it reads that field.
-        var returned = new OpaquePart(target, Json("""{"reasoning_content":"PRIVATE RETURNED THOUGHT"}"""));
+        // Both shapes this codec really records: the envelope a provider's own
+        // reasoning block becomes, and the legacy part recorded before the envelope
+        // existed. A raw response fragment with no type is neither, and the
+        // endpoint refuses it, so it is checked separately below.
+        var returned = new OpaquePart(target, Json("""{"type":"chat_reasoning","reasoning_content":"PRIVATE RETURNED THOUGHT","text":"PRIVATE RETURNED THOUGHT"}"""));
         var recorded = new OpaquePart(target, Json("""{"type":"reasoning_content","text":"PRIVATE RECORDED THOUGHT"}"""));
         var context = new Context([
             new Entry(1, Actor.Human, [new TextPart("question")]),
@@ -67,12 +70,23 @@ internal static class ReasoningReplayTests
         Check(quiet["stream"]?.GetValue<bool>() == true,
             "a channel selection that still streams something stopped asking for a stream");
 
-        Check(!wire.Contains("PRIVATE RETURNED THOUGHT") && !wire.Contains("PRIVATE RECORDED THOUGHT"),
-            "provider-only reasoning was replayed to the endpoint: " + wire);
+        Check(wire.Contains("PRIVATE RETURNED THOUGHT") && wire.Contains("PRIVATE RECORDED THOUGHT"),
+            "provider reasoning was not replayed for the endpoint that returned it: " + wire);
         Check(wire.Contains("first answer") && wire.Contains("second answer"),
-            "dropping reasoning also dropped the delivered text: " + wire);
-        // An array member without a type is what turned every resumed conversation
-        // into a 422, so the whole content array is checked, not just reasoning.
+            "replay lost the delivered text beside the reasoning: " + wire);
+        // Reasoning now leaves the content array entirely, so any member that does
+        // arrive must carry a type this endpoint recognizes: an untyped element is
+        // what turned every resumed conversation into a 422.
+        // A raw response fragment is not an envelope this codec records, so it is
+        // dropped rather than handed to the endpoint as content.
+        var stray = new Agent(app, chat);
+        var strayWire = stray.Engine().Render(new Context([
+            new Entry(1, Actor.Agent, [new OpaquePart(target,
+                Json("""{"reasoning_content":"PRIVATE STRAY FRAGMENT"}"""))])
+        ])).ToJsonString();
+        stray.Destroy();
+        Check(!strayWire.Contains("PRIVATE STRAY FRAGMENT"),
+            "an untyped provider block was handed to the endpoint as content: " + strayWire);
         foreach (var block in Parts(request))
         {
             string type = block["type"]?.GetValue<string>() ?? "";
@@ -80,17 +94,19 @@ internal static class ReasoningReplayTests
                 "content array carries a part this endpoint cannot parse: " + block.ToJsonString());
         }
 
+        // A turn holding only reasoning is now a turn worth sending: its reasoning is
+        // the provider's own continuation state, so omitting it would lose the thought.
         var assistants = request["messages"]!.AsArray()
             .Count(node => node!["role"]!.GetValue<string>() == "assistant");
-        Check(assistants == 2,
-            $"a turn holding only reasoning should be omitted, saw {assistants} assistant messages: {wire}");
+        Check(assistants == 3,
+            $"a turn holding only reasoning should replay, saw {assistants} assistant messages: {wire}");
         Check(request["messages"]!.AsArray()
             .Where(node => node!["role"]!.GetValue<string>() == "assistant")
             .All(node => node!["content"] is JsonValue),
             "an ordinary text turn should stay a string content without media: " + wire);
 
-        // The other dialects do accept their own opaque blocks, so the removal must
-        // stop at this surface rather than quietly lose thinking replay everywhere.
+        // The messages dialect keeps its own thinking block, in its own shape, so
+        // chat's message-level fields must not be pushed onto that surface either.
         var claude = new Configuration(Vendor.Anthropic, "reasoning-replay-model", "http://127.0.0.1:1");
         var thinking = new OpaquePart(claude.Target(),
             Json("""{"type":"thinking","thinking":"KEEP THIS THOUGHT","signature":"sig-1"}"""));

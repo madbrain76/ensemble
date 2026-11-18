@@ -3757,10 +3757,19 @@ navigate and explain an edit; matching the original text makes the edit apply
 only where that text still exists.
 
 Apply `max_bytes` to the selected source's UTF-8 bytes before adding prefixes.
-Back up to a complete UTF-8 character when clipping, and append an unnumbered
-`[truncated]` notice rather than implying the last shown line is complete.
-Number prefixes and that notice are additional presentation bytes. Chapter 4's
-Job observation cap separately bounds the overall report. Any structured source
+Back up to a complete UTF-8 character when clipping. Prepend an unnumbered
+`[source truncated: ...]` notice with the source cap and captured/selected byte
+counts. If the captured prefix ends at a newline, give the following line as the
+continuation; otherwise tell the caller to reread the incomplete line with a larger
+`max_bytes`. Never skip a missing suffix by advancing past a partial line. State
+that `max_output_bytes` is a separate report cap, and recommend both line bounds
+for a bounded range. Putting the notice first helps preserve it when the report
+itself clips. Number prefixes and notices are additional presentation bytes.
+
+Report an empty file explicitly as zero lines. A start beyond EOF reports the
+requested start and actual file line count; a trailing newline does not create an
+extra source line. Chapter 4's Job observation cap separately bounds the overall
+report: its `truncated:false` does not negate a source-truncation notice. Any structured source
 evidence for a later renderer retains the unnumbered captured text and its actual
 starting line, so the GUI does not number the same source twice.
 
@@ -3780,8 +3789,10 @@ can ask for more; it cannot un-spend the window.
 `write_file` refuses to overwrite unless asked by name. Of the six tools,
 exactly one operation destroys work with no trace in the log, and it is
 `write_file` on a path that already exists. So that call is gated. The target
-exists, the reply says so and how big it is, nothing has happened, and
-`overwrite: true` is the word that makes it happen. A new file needs no flag,
+exists, the reply explains that existing contents were preserved and how to
+proceed: `overwrite: true` replaces them, `append: true` adds to them, and
+`edit_file` makes a targeted change. Merely saying “overwrite” in prose does
+not set the tool argument. A new file needs no flag,
 since seven to one says most `write_file` calls create; `append` is never
 refused. Asked what it thought of this tool set, before the guard existed, a
 live model put the intuition in one sentence: "`write_file` is the one tool
@@ -5967,6 +5978,67 @@ These are replayable facts, not a fabricated error used to force a state change.
 The Chapter 2 states remain Idle, InputPending, InFlight and ToolsPending.
 Scheduling flags are transient actor control, not another canonical transcript.
 
+### Continue from the error without replacing the task
+
+An ordinary provider failure must not settle the admitted task and quietly create
+another one. Record the safe failure immediately in one ErrorOccurred event,
+marked as a provider failure. Its text parts project into model dialogue as
+labelled runtime data, while the same event supplies the visible error card.
+Serialize and read back the optional provider-failure reason and text parts in
+that event's codec; an in-memory projection alone loses the notice during journal
+replay. Preserve legacy string and message-only error records, and test the codec
+round trip followed by reduction into tool-role data rather than system authority.
+Legacy and local errors are not silently promoted into model input. Retain the
+active task and its work generation, and expose a waiting status with the failure
+count and continuation deadline. Engine classifies one exchange; the actor
+schedules an ordinary continuation from updated History, not a blind resend.
+
+Retry all unsuccessful HTTP statuses and explicit provider error responses,
+including unknown categories, with delays of 1, 10, 100, then 1,000 seconds.
+Continue at the cap until recovery or an explicit stop. This deliberately includes
+authentication and invalid-request responses: a human may correct the service or
+configuration while the task waits. It is not a claim that every failure is
+transient. Successful provider exchange resets the streak. So do recorded human
+messages, child hints and completed model-dispatched tool results. New input
+cancels a pending recovery wait without cancelling a healthy in-flight request.
+Errors, status queries, request-start facts, synthetic goal reminders and automatic
+snapshot collection do not reset it: recovery must not reset its own backoff.
+Keep the selected
+model, endpoint and funding; retry is never permission to select a paid fallback.
+
+Use the longer of that backoff and valid adapter-supplied retry advice. A timer
+only posts a wake message. Advance rechecks the deadline, pause and lifetime,
+so an early or stale callback cannot dispatch a request prematurely. Pause stops
+the timer but retains the deadline and original task; resume waits the remaining
+interval, or proceeds if it has elapsed. Interrupt and shutdown clear retry state
+and settle the original task through the normal cancellation path. New queued
+submissions do not replace the task already waiting.
+
+At recovery, build the next request from recorded state. Completed tool calls and
+results remain paired; do not replay their effects. Discard unfinished response
+assembly, including partial tool arguments. Retrying inference can still incur a
+second generation or charge: a failed exchange does not prove that the provider
+never processed the first request. This is not an exactly-once network protocol.
+
+Local authorization/setup failures, malformed responses, tool failures and
+cancellation retain their normal failure semantics. In particular, an I/O error
+from a diagnostic writer is not a provider outage. Translate I/O failure only at
+the actual network-read boundary, outside parsing, callbacks and local recording.
+Memory-compression workers retain their separately bounded lifetime rather than
+retrying indefinitely. Chapter 25 shares one generation-checked continuation
+timer between goal reminders and error recovery. Recovery is a temporary reason
+to continue, not a replacement goal file or permission to enable reminders.
+Success clears recovery without replacing or clearing the human's goal.
+
+Verify with a local failing provider: the same task must remain pending through
+failure and return its eventual reply, with one human input and no enabled goal.
+Check that the next wire request contains the recorded error as data, a new
+human message releases a pending wait and resets its streak, and observation
+alone does neither. Check pause/resume, interrupt/shutdown, success reset, capped
+delay selection, and a completed tool result present in both failed and retried continuation requests
+with exactly one effect. These additional requirements are not certification by
+the historical chapter grader.
+
 ### Reliable completion is not observation
 
 `SubmitAsync` creates a `TaskCompletionSource<string>` with asynchronous
@@ -6650,8 +6722,26 @@ authentication failure or rate limit; otherwise report a generic provider error.
 Never copy an arbitrary remote message into History or the GUI. Test both the
 safe classification and the effect boundary: rejection after a partial tool
 call must execute nothing, and a later fresh turn must not replay an orphan call.
-This distinction does not change the separate Responses terminal-completion
-rules or the non-streaming decoder.
+Carry that distinction in the immutable parse result, not by matching error-card
+English in the actor. Explicit errors in plain HTTP 200 JSON and SSE are remote
+failures; Responses `error` and `response.failed` events are too. A nullable
+`error: null` on an ordinary response is not a failure, but an explicit
+`type: error` event is still a failure with null or unfamiliar detail. Responses
+`response.incomplete`, malformed JSON and missing terminal success remain
+incomplete/protocol failures, not automatic retry authorization.
+
+Adapters extract only recognized duration data: HTTP `Retry-After` seconds or
+HTTP-date, and Gemini's `google.rpc.RetryInfo.retryDelay`. Use the longer valid
+value. Inspect at most 64 KiB of a Gemini unsuccessful-HTTP body for that metadata;
+do not trace or retain the error body. Recognized explicit error frames likewise
+bypass payload tracing. Unknown, negative, nonfinite or timer-out-of-range advice
+is ignored. Free-form vendor prose is not parsed as a duration without an explicit,
+tested grammar. An overloaded label is a remote failure, not by itself a wait time.
+
+Tests must distinguish network-read I/O from local diagnostic-write I/O, retain
+header advice on HTTP-200 errors and streams, and reject malformed advice without
+leaking payload text. Recovery scheduling belongs to Chapter 5's actor; parsing
+an error never executes a partial tool or starts its own retry timer.
 
 ### Arrival order is policy evidence
 
@@ -8166,7 +8256,21 @@ tools:
   - write_file
   - edit_file
   - run_command
+  - wait_for_job
 ```
+
+A coding skill that starts commands must also grant observation of their running
+Jobs. `run_command` does not implicitly grant `wait_for_job`. Teach the Agent to
+retain the returned handle and collect its result instead of rerunning a command
+or treating an observation delay as failure. Test the actual enabled tool set;
+a sentence asking the Agent to wait cannot supply missing authority.
+
+A small coding primary may also serve delegated assignments. Declare `submit`
+and `send_message_to_parent` explicitly for that use, as `local-coding` does.
+Teach it to finish owned command Jobs before submitting the required result,
+and to ask its parent when a consequential decision is missing. A direct human
+conversation ends with an ordinary reply; delegated completion requires submission.
+These reporting grants do not add filesystem access or permission to spawn workers.
 
 This is a small documented subset, not a general YAML implementation. Unknown
 fields, duplicate fields, malformed identifiers, and missing boundaries are
@@ -12689,7 +12793,19 @@ reader during cleanup rather than leaving a stuck test behind.
 
 File editing retains one open read/write handle across the read, exact-anchor
 check, and replacement. A second pathname lookup must not redirect the write.
-New files use exclusive creation rather than a separate existence check. Native
+New files use exclusive creation rather than a separate existence check. If that
+open returns `EEXIST`, report “File already exists” with the explicit overwrite,
+append and edit alternatives, not a generic sandbox refusal. A confined student
+repeated the same unflagged write after seeing only `errno 17`; the permission
+boundary was working, but its diagnostic did not teach recovery. Translate the
+actual failed open, without an existence precheck or resolved-path disclosure,
+and test that refusal preserves bytes while explicit overwrite replaces them.
+Other access failures must not be mislabeled as existing files. Likewise,
+`ENOENT` from the failed native operation means “File or directory not found,”
+with a reminder to check the requested path and parent directories, not a generic
+sandbox-escape refusal. Preserve the FileNotFoundException category and include
+only the caller's requested path, never a resolved symlink target. No existence
+precheck or authority change is needed to improve either diagnostic. Native
 creation permissions are private, and append initializes the managed stream
 position at the end. The Apple ARM64 variadic ABI required special handling for
 `openat`'s creation mode; compiling a declaration was not evidence that the mode
@@ -13572,7 +13688,48 @@ might need in reverse order. Sandbox policy derivation must not hold its gate
 while reaching back into Agent ingress. Recheck admission after preparation;
 shutdown racing with creation must not attach a half-live child.
 
-A new optional model keeps the parent's provider and billing route. A schema is
+A new optional `model` keeps the parent's provider and billing route. Alternatively,
+`offering` selects an exact registered vendor/endpoint/model identity; supplying
+both refuses. Resolve that identity through the owning application's model graph,
+not by copying credentials or falling back to a different offering.
+
+Keep these choices in a value-like `ChildLaunchOptions` declaration in Common.
+An explicit `primary_skill` selects a primary from the creator's parsed catalog.
+Initialize its dependencies, but do not inherit unrelated parent startup
+selections. Without that override, preserve ordinary skill inheritance.
+The selected primary must grant the operations its assignment requires, including
+`submit` for delegated completion and `wait_for_job` for command observation.
+Selecting a primary does not silently add either tool.
+
+For a fresh child, `confined: true` selects `children/<id>` as its writable root.
+This keeps project files, caches, records and Jobs within the existing child home
+and preserves restart discovery without a second registry. Validate identity,
+submission schema and sandbox narrowing before creating the directory through
+the parent's Sandbox; open the child Sandbox only after its root exists.
+`process_read_paths` supplies read-only command imports: omission inherits,
+an empty array drops them, and a confined parent cannot grant broader access.
+These imports do not enlarge built-in file-tool access. Verify launch arguments
+through actual tool dispatch, not only direct construction calls.
+Read registered launch policy before resolving the model for a reused ID. Preserve
+its exact offering as well as its sandbox and primary; a new assignment must not
+silently inherit the creator's route. Public shutdown retires automatic restart,
+not the saved launch policy. Explicit reuse preserves that policy while starting
+a new assignment; prepared files alone do not imply a previous Agent.
+
+A confined compiler process can still be unable to run a grader: the default
+network denial includes local HTTP fakes. Do not solve that by running student
+code unrestricted. A trusted host can run the unchanged grader and prepare each
+candidate through the same Sandbox, granting outbound TCP only to the grader's
+assigned host-local port. Validate the numeric loopback HTTP origin and keep the
+launcher, wrapper and runtime outside student write authority. The candidate
+gets neither listening permission nor a general local-service grant; ordinary
+Agent commands remain network-denied. Replace the wrapper process so the grader
+retains its candidate PID, stdio and exit status. See the
+[confined grading harness](../scripts/confined-grading/README.md) for the narrow
+Chapter 1 adapter and its platform limits. Parent-mediated grading is not an
+autonomous model-facing tool, and a fake grade does not replace the live exercise.
+
+A schema is
 validated and copied before construction effects. Descendants without an
 explicit schema get the default contract, not their parent's answer format.
 Configuration and templates may be immutable values; live clients, activation
@@ -13658,7 +13815,7 @@ The tool arguments are small:
 
 | Tool | Arguments |
 | --- | --- |
-| `spawn_sub_agent` | `agent_id`, `task`, optional `model`, `submit_schema`, and `working_context_tokens` |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model` or `offering`, `primary_skill`, `confined`, `process_read_paths`, `submit_schema`, and `working_context_tokens` |
 | `join_agents` | optional `agent_ids`; omitted means all current children |
 | `agents_status` | none |
 | `shutdown_agent` | `agent_id` |
@@ -13762,8 +13919,30 @@ remain separate. A wake returns the same running handle, not a cancelled task.
 
 The actor records human hints before pulsing. Child notices use `HintReceived`
 with `Actor.Tool` and labeled question data, never system/developer instructions.
-An idle parent records that notice without starting inference; root-human
-questions stay in the human inbox rather than waking the root to answer itself.
+Recording is not scheduling. If the parent is idle, enqueue an empty model-turn
+trigger after recording the notice. Do not copy the notice into a second human
+message. If a model turn is already queued, it will see the recorded notices;
+coalesce the wake rather than queue redundant turns. During an active turn, mark
+the hint pending so the next request includes it after completed tool outcomes.
+A nested parent's prior submission must not stand for newly admitted work.
+
+The ordinary actor scheduler enforces pause: record incoming messages while paused,
+but defer inference until resume. Shutdown cancels queued work and unresolved
+questions instead of dispatching a wake. No goal reminder, observer, or polling
+loop is required for an idle recipient to run. Root-human questions remain the
+exception: they are addressed to the human, not to the root model, and must never
+wake that model to answer itself. Waking changes scheduling, not authority.
+
+Verify this at the actual provider boundary with a local fake: a question to an
+idle parent must cause one request containing the notice once, outside system
+instructions. Two questions received while paused must cause no request until
+resume, then share one turn. Busy delivery must reach the next request without
+cancelling its independent Job. Paused delivery followed by shutdown must produce
+no request and must settle the pending question. The runtime regression entry
+point is `dotnet run --project agent/Tests/Tests.csproj -- --message-wake-tests`
+from the repository root with the .NET 10 SDK. These source regressions supplement
+the chapter's historical grader; its score alone does not certify idle wake.
+
 Chat input uses actor-decided turn-or-hint admission. JSON `prompt` and `hint`
 retain their separate meanings. Displaying a human question observes the inbox;
 it does not consume it or create another pending-question store.
@@ -14359,6 +14538,29 @@ A host restart used to remove every live child from the tree even though its fil
 
 I require ordinary children to carry their restart registration in their own home. There is no second global child registry. `child.json` records a version, local identity, model, submission schema and accepted-work generation, current submission and pause flags, an acknowledged submission checksum, and goal configuration. It contains no credentials, provider endpoint, transcript copy, process handle, or copied service bag. Common owns this vocabulary and the real Agent fields; the functional Agent partial implements persistence and reconstruction through its Sandbox.
 
+Version three also records the effective canonical sandbox root and read-only
+imports, plus an explicit primary-skill override when selected. Root and imports
+are mandatory in this version: an empty root means unrestricted, not inheritance.
+Continue reading older versions under their original inheritance rules; reject
+unknown fields and malformed policy instead of silently reverting to defaults.
+Restore through the current parent's narrowing policy and refuse missing imports
+or roots rather than recreating an apparently restored workspace.
+
+A new assignment reusing an ID retains its saved launch policy without reviving
+old submission or pause state. Refuse replacement launch options for that ID;
+choose a fresh ID for a different trial. Persist the primary override on the
+Agent so later settings writes cannot erase it. Test creation, reuse and host
+restoration separately, including outside-path refusal and startup-skill isolation.
+
+Public `shutdown_agent` and `kill_agent` retire automatic restart through explicit
+child deletion, unlike host teardown or direct lifetime destruction. Version four
+adds a required boolean `Retired` field to the same launch record. Save it before
+teardown; do not delete the policy. Automatic restoration skips retired records.
+Explicit reuse reads their model, primary and sandbox policy, clears old completion,
+and saves an active record for the new assignment. Older records remain readable.
+Test actual public shutdown, automatic-restore exclusion and explicit safe reuse.
+Prepared role files and cancelled startup must still permit ordinary creation.
+
 Save changed restart settings before acknowledging them. New accepted work invalidates prior completion in the restart record even while the historical `submit.md` remains available. A restored submitted flag is usable only with the matching generation, payload checksum and a valid existing submission artifact. These are separate file replacements, not a multi-file transaction; a mismatch refuses restoration rather than inventing acceptance. In particular, reading an arbitrary old answer still cannot complete newer work. Model choices remain subject to the current parent's provider and sandbox policy.
 
 The host composition root calls `RestoreChildrenAsync`. Enumerate and validate ordinary child registrations, construct through the actual parent, restore each child's own History, initialize current skills, and reconstruct descendants. Refuse malformed or identity-mismatched records rather than treating corruption as an empty fleet. A failed restoration joins and removes the children it just constructed. An already-live child is not duplicated. Borrowed GUI mounts do not become startup owners.
@@ -14456,6 +14658,12 @@ Output polling must not consume the GUI's shared lossy observation queue. Use ca
 This illustrates the output shape, not a promise that idle implies submitted. They are independent fields.
 
 `send_message` admits `Message` through the actor, so it becomes steering during active work or a new turn when idle. An incoming message wakes current Job observations without killing the Jobs and without creating a sticky interrupt for future observers, as established in Chapter 19.
+
+The same scheduling principle applies upward: a child's question records labeled
+Tool-authority data and starts an idle parent, or reaches its active turn as a
+hint. A human pause defers the turn until resume. Recording the question and
+waking a Job observer are not substitutes for this idle-turn admission; neither
+requires goal reminders. Root questions addressed to a human do not self-wake.
 
 `ask_agent` instead uses a separate `SubmitAsync` admission and waits for that turn's reliable reply. It does not consume an older assistant final from a shared cursor. It has no cursor parameter and does not automatically fetch the structured submission payload. Use `get_submission` for historical typed data and `join_agents` for current selected-child completion.
 
@@ -15702,7 +15910,7 @@ The names `bucket-0` and `bucket-1` are storage conventions, not new owners. The
 
 ### A budget is a trigger and a writing target
 
-Memory policies are immutable values declared in Common. Negative budgets and values whose doubled threshold would overflow refuse before changing policy. The default conversation budget is 3,000 UTF-8 bytes; SOUL, MEMORY, archive64, archive8 and session each default to 1,500. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
+Memory policies are immutable values declared in Common. Negative budgets and values whose doubled threshold would overflow refuse before changing policy. The default budgets, in UTF-8 bytes, are Conversation 100,000, Session 40,000, archive8 and archive64 10,000 each, MEMORY 10,000, and SOUL 5,000. All bands are enabled by default. These retain useful engineering context without tying memory policy to a particular model’s token capacity. Explicit saved budgets remain authoritative: changing application defaults does not migrate an existing Agent’s policy. A zero budget selects the applicable default, rather than disabling a band. High and low watermarks are always twice and once the resolved budget; they are internal derived thresholds, not additional settings. Disabling is a separate boolean, so “off” cannot be confused with “use the default.”
 
 These are byte budgets, not token windows. The earlier Chapter 14 target and tool-result policies remain distinct. A main request can have substantial overhead from instructions, tool declarations and provider formatting; counting memory bytes alone cannot predict its token occupancy.
 
@@ -15948,7 +16156,7 @@ Chapter 20 established sibling homes for true top-level Agents and nested homes 
 
 This is an illustrative layout, not a claim that those source and destination files are all simultaneously active. Promoted sources become `.retired` files. Hidden staging receipts are implementation-owned and excluded from corpus scans.
 
-Session names have a date and positive number. Archive names contain both dated endpoints of a first/last session range, separated by `--`. Parsing rejects malformed dates, inverted ranges and overlapping active coverage. Ordering is by parsed identity, not lexicographic filename order: session 10 must not precede session 2. Retired session identities also reserve their numbers so new work does not reuse an old identity.
+Session names have a date and positive number. Archive names contain both dated endpoints of a first/last session range, separated by `--`. Directory scans skip and diagnose filenames with malformed dates, missing or invalid numbers, or inverted ranges, leaving those files untouched. A human or file-writing tool can leave unrelated Markdown in a memory directory; that must not stop the Agent at startup. New session-number allocation applies the same rule to active and retired filenames. Recorded transaction identities remain strict, and overlapping valid active coverage still refuses. Ordering is by parsed identity, not lexicographic filename order: session 10 must not precede session 2. Valid retired session identities reserve their numbers so new work does not reuse an old identity.
 
 Stable files may be absent; invalid UTF-8, unreadable files and confinement failures are not treated as empty content. Memory reads bytes freshly, rather than keeping a second mutable file-content cache. It performs no network fetches.
 
@@ -17522,6 +17730,23 @@ Normal return to idle queues one actor wake immediately, without a timer delay. 
 The actor accepts the wake only if the token is current, the configuration is enabled, the Goals grant remains active, and the Agent is still idle. Active foreground work, admitted turns, controls, startup work, and direct Engine sends prevent an automatic wake. Independent Jobs can remain alive; the reminder instructs the model to inspect them rather than cancel or duplicate them.
 
 Pause invalidates queued wakes and suspends retry waits. Resume reevaluates eligibility: ordinary idle continuation is immediate; an outstanding failure streak starts its current backoff interval again. Interrupt disables reminders, even when there is no active turn. Shutdown, actor failure, successful delegated submission, unload, and destruction must not leave a later automatic turn behind.
+
+### One retry owner per turn
+
+Ordinary provider recovery from Chapter 5 retains an active admission and does
+not enable goals. That active work prevents idle reminders. An automatic goal
+turn instead retains this chapter's existing finish-and-backoff lifecycle: use
+the shared 1/10/100/1,000-second schedule and honor longer valid provider advice
+using one shared, generation-checked continuation timer. The wake reason selects
+goal continuation or recovery of the retained task; there is no competing timer
+and no temporary goal file. Recovery works with reminders off or the goals skill
+unloaded, without altering the configured goal. A marked provider error remains
+model-visible data in either path. Human input, child hints, completed tool results
+and successful responses reset failure backoff; synthetic reminders, automatic
+snapshots and recovery bookkeeping do not.
+Clear old advice on a new turn, successful completion, or goal reset so it cannot
+delay unrelated later work. Goal retry-now bypasses one goal wait; it is not a
+control for an ordinary task's retry.
 
 ### The GUI
 
@@ -20754,6 +20979,152 @@ subtree before logical destruction; it does not edit the top-level registry or
 delete saved files. Test confirmation cancellation, server-side protection, view
 recovery after deletion, and actual retention of saved submission files.
 
+The Flint harness exposed a separate gap in native child creation: the GUI could
+select a confined peer, but `spawn_sub_agent` could not select an exact offering,
+primary skill or child-specific sandbox. Extend the existing parent-owned path,
+not a separate harness service. Keep a confined trial in its assigned child home,
+resolve registered offerings without copying credentials, and persist the effective
+policy before admitting work. Explicit primary selection starts from that primary's
+dependencies rather than the creator's unrelated startup selections. Chapters 19
+and 20 specify construction and restoration; Chapter 9 grants observation alongside
+command execution so a coding Agent can collect its running Jobs.
+
+The first full regression exposed an exact workflow-schema mismatch: adding
+optional spawn fields made the packaged workflow refuse before it launched a
+child. Its native test reported a provider timeout because it awaited a request
+instead of the workflow's early error. Update the active package's declared
+contract without relaxing structural comparison, and race that test's incoming
+request against workflow completion to report the actual failure. Preserve frozen
+external grader contracts as historical targets. Fake-provider and local policy
+tests establish these boundaries; they do not establish Flint's coding ability.
+
+The first live confined Flint smoke ran Go, Python and C# successfully, but exceeded
+its correction budget while fixing working-directory and SDK executable-path
+errors. Compiler availability was established, not a clean autonomous task pass.
+Its submission abbreviated the errors; retain tool output as evidence rather
+than replacing it with the final success story.
+
+Reopening that child after public shutdown exposed a more serious harness gap.
+Shutdown retired `child.json`, so reuse inherited the creator's model and
+unrestricted sandbox. The parent cancelled the unintended child. Earlier tests
+used direct destruction, which kept the registration, and omitted a route
+assertion on reuse. Even registered reuse selected the model before reading its
+saved policy. Resolve the registered route before model selection. Preserve the
+launch policy on public deletion, marking the same record retired instead of
+removing it. Automatic restore skips retired records; explicit reuse retains the
+policy and starts a new assignment without accepting the old completion.
+
+An initial repair refused every nonempty home without registration. Full regression
+tests rejected that shortcut: workflows legitimately prepare role memories before
+creation, and cancelled startup leaves retryable files. Restart eligibility and
+launch authority are separate facts; preserve both explicitly rather than infer
+them from directory contents. Add route-identity and public-shutdown reuse tests.
+
+A follow-up smoke supplied a project-local environment script with explicit Go
+and .NET executable paths, offline settings and workspace-local caches. All three
+programs ran; C# needed one namespace qualification. Supply the absolute project
+path in the assignment as well: this trial first probed `/`, which the sandbox
+refused, then discovered its home with a shell command outside the prescribed
+setup sequence. The child later called that compliant; the recorded calls did
+not. A provider error prevented the original submission, and a separate closeout
+request obtained it. Compiler success, instruction compliance and completed
+submission are distinct evidence, even in a tiny smoke test.
+
+The chapter grader introduced a different boundary: its HTTP fake could not run
+under command-wide network denial. Native probes rejected numeric-address sandbox
+predicates; `localhost` also matched the host's non-loopback interface. Requiring
+a remote peer in the inbound rule prevented listening, which has no peer yet.
+Instead of broadening every child command, a trusted launcher prepares the
+candidate with outbound access only to the unchanged grader's assigned local
+port. The wrapper stays outside student write authority and replaces itself,
+preserving the grader's process identity and protocol streams.
+
+Python socket checks passed, but the first real C# grade received no requests.
+A diagnostic probe traced permission denial to IPv4-mapped IPv6 sockets: the same
+native rule allowed IPv4 and rejected the mapped form. For an IPv4 fake URL the
+launcher sets `DOTNET_SYSTEM_NET_DISABLEIPV6=1`, without changing student source
+or widening the port rule. Record that adaptation. A passing socket probe is not
+a passing runtime test, and a passing runtime test is not the chapter's real
+grader or live exercise. The host-local port rule is not a private network
+namespace or resource quota. With the IPv4 adaptation, the unchanged Chapter 1
+grader passed against a preserved reference executable, including both
+62-second delay checks. That verifies the harness against the reference, not
+a student implementation or the separate live-provider exercise.
+
+Create Agent must make filesystem authority explicit, independently of model and
+primary skill. Offer inherited access with its actual scope, or confinement to a
+required workspace. Browse server directories through the mounted Agent's Sandbox,
+not a browser-local folder picker: a phone's folders are not the server's folders.
+Keep an editable absolute path for a new child directory. The primary skill grants
+tools; it does not grant arbitrary filesystem paths or compiler installations.
+
+Canonicalize the selected root and reuse sandbox narrowing checks before startup.
+Persist that root with the peer launch record and validate it on restore; never
+silently restore a confined peer as unrestricted. When the host-assigned Agent home
+lies outside the workspace, derive its home as `.ensemble/agents/<name>` inside the
+workspace instead. Deletion leaves workspace files intact; deleting a temporary
+workspace externally also deletes those Agent records. Existing peers are not
+retroactively confined. Test the actual creation request, outside-path refusal,
+workspace-local saving, and restored confinement, not just the dialog controls.
+
+Offer read-only command imports separately from the writable workspace. Suggestions
+such as the installed Go toolchain at `/usr/local/go` are unchecked choices, not
+automatic grants. Mark unavailable suggestions explicitly. Show inherited imports
+as selected, allow deselection, and provide a server folder chooser and absolute
+path entry for other imports. Do not scan or suggest arbitrary external directories
+from a confined creator. Folder selection alone grants nothing.
+
+Pass the selected paths through the existing sandbox policy, not a GUI-specific
+permission system. Canonicalize and validate existing targets, reject duplicates
+and overlap with the writable root, and allow a confined creator only to retain,
+narrow or drop its own imports. Save the effective paths in the peer launch record;
+omission inherits for older records, while an explicit empty array means no imports.
+Revalidate on restore and refuse missing or unauthorized paths rather than silently
+changing the policy. A model switch must preserve these Agent-owned permissions.
+
+Imports permit command reads, not writes or network access, and do not widen built-in
+file tools. Executable discovery is another necessary step: append only an approved
+directory's existing, physically contained `bin` directory to the minimal command
+PATH, after system directories. Never inherit the host's whole PATH or shell startup
+files. Compilers still need workspace-local caches and available dependencies;
+selecting Go is not permission to download modules. Test real executable lookup and
+descendant access, denied external writes and network, exact GUI selections, saved
+imports and refusal on restore—not only a generated sandbox-profile string.
+
+Verify compiler access through the actual child command tool before evaluating a
+model. The harness compiled and ran a Go program and a standard .NET 10 console
+program, and ran Python with workspace file access, inside a confined child.
+Only the installed Go and .NET toolchain directories were imported read-only;
+system Python used the existing runtime reads. Keep project files and caches in
+a project subdirectory: the assigned child home also contains its saved History,
+settings and restart record, and is not disposable compiler output.
+
+For an offline smoke check, set these variables in each fresh command shell, with
+`DOTNET_ROOT` pointing to the explicitly imported SDK directory:
+
+```sh
+export GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off CGO_ENABLED=0
+export GOCACHE="$PWD/go-build" GOMODCACHE="$PWD/go-mod"
+export DOTNET_CLI_HOME="$PWD/dotnet-home" NUGET_PACKAGES="$PWD/packages"
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_GENERATE_ASPNET_CERTIFICATE=false
+go run hello.go
+/usr/bin/python3 script.py
+"$DOTNET_ROOT/dotnet" build Hello.csproj --configfile NuGet.Config \
+  -p:NuGetAudit=false --disable-build-servers --tl:off
+"$DOTNET_ROOT/dotnet" bin/Debug/net10.0/Hello.dll
+```
+
+Use a `NuGet.Config` containing
+`<configuration><packageSources><clear /></packageSources></configuration>` and
+programs without third-party dependencies. This proves the installed toolchains
+work under confinement, not that arbitrary packages or workloads are available.
+The .NET first-use workload-verification advice did not prevent the console build;
+it was not permission to run a workload update. Collect running commands through
+`wait_for_job`. A delegated coding primary must also explicitly grant parent
+questions and submission; `local-coding` now teaches both without adding worker
+creation or external filesystem authority.
+
 Submission is result publication, not a request to stop or remove a child. Keep
 submitted children selectable and show their submitted status alongside activity.
 A status-tool query and a GUI snapshot must not hide them merely because their
@@ -21901,6 +22272,233 @@ Projection/socket checks, the GUI consumer suite, and a disposable browser test
 covered identity, visibility, literal text, replay, Agent isolation, and eviction.
 These were source-level checks, not installation or human visual acceptance, and
 they did not authorize exposing raw provider bodies that may echo private data.
+
+### Retained thinking still needs room to finish
+
+Bill reported that Flint appeared to forget its plan between tool round trips.
+The Agent's API log established a different immediate failure: all four recorded
+tool continuations included the preceding thinking text exactly, together with
+the call and result. The latest request retained ten thinking blocks. This proved
+what Ensemble sent, not how the gateway forwarded it or how well the model used it.
+
+The outgoing Messages requests capped output at 1,024 tokens. Two main responses
+ended with `max_tokens`, exactly 1,024 output tokens, and thinking but no answer or
+tool call. Reasoning had exhausted the allowance before producing an action.
+This is an output-token limit, not a byte limit, input-context capacity, or proof
+that the model lacks multi-step planning ability.
+
+The Messages and Chat Completions defaults now allow 16,384 output tokens.
+Reasoning and visible completion share that ceiling; it does not require a long
+response, but it permits one and can increase usage. Other protocols retain their
+existing behavior. Working-context settings govern input, and reasoning effort
+is not an output ceiling.
+
+[Flint's model card](https://huggingface.co/RecursiveSI/flint) recommends at least
+32,768 output tokens for hard problems, including reasoning. Its registered
+model policy therefore selects 32,768 rather than the general default. A host
+model document can set a positive whole `request_policy.max_output_tokens` for
+Messages or Chat Completions; other surfaces refuse this option. The selected
+model owns this policy, which is frozen into each request configuration and
+preserved by configuration copies. It is not a per-Agent GUI setting.
+
+The model card also requires preserving `reasoning_content`. A bounded synthetic
+probe compared the same marker across a tool boundary through both OpenRouter
+protocols. Messages recovered the marker from prior thinking but repeated itself
+until the 32,768-token ceiling; Chat Completions returned the exact marker and
+stopped normally. Ordinary-text and absent-marker controls behaved correctly.
+These single samples do not prove a deterministic gateway defect or model ranking,
+but they justify testing the documented Chat representation rather than blaming
+model size. Outgoing preservation alone does not establish gateway translation.
+
+The Chat codec now retains `reasoning_content`, `reasoning`, and structured
+`reasoning_details` in one provenance-bound opaque Part. It assembles indexed or
+identified stream fragments and restores native fields at assistant-message level,
+not inside the content array. Readable reasoning is a separate display projection:
+aliases do not produce duplicate thinking, and encrypted data and opaque identifiers
+remain replay-only. Contradictory or ambiguous fragments refuse the response.
+Legacy Chat reasoning wrappers remain readable without rewriting saved History.
+
+The host offers Flint through Chat Completions under its own endpoint identity.
+The legacy Messages registration was retained during migration, then removed when
+it was no longer needed. Saved Agents do not silently switch protocols: opaque
+replay includes surface and offering provenance. A retired selection becomes
+unavailable; its conversation files are not deleted. Choose Chat deliberately,
+preferably in a fresh conversation; old Messages reasoning is not automatically
+converted into Chat history.
+
+A controlled tool-chain probe also recovered a secret supplied only in prior
+reasoning when a hint followed the tool result as a separate user message.
+The Chat renderer already uses this form: its disposable projection groups
+matching tool results before interleaved human hints, then emits each hint with
+the user role. A real Agent/HTTP regression verifies unchanged native reasoning,
+one separate user hint after the result, and unchanged chronological History.
+No Flint-specific hint policy is needed. The probe demonstrates a short successful
+continuation, not a reliability guarantee or trustworthy claims of secret memory.
+
+Actual loopback assertions verify the output budget and exact native reasoning in
+the next request after a tool result. The new codec tests fail against the earlier
+implementation; GUI projection checks exclude private replay metadata. These are
+local integration checks, separate from the synthetic provider probe. Installation,
+restart and human use of the new application route remain separate acceptance steps.
+
+Bill's first new-Agent trial then exposed a stream boundary our loopback fixture
+had omitted. OpenRouter's final usage frame repeated `finish_reason: stop` with
+empty content after the first stop frame. The parser treated every subsequent
+choice as late output and rejected the completed response. A synthetic regression
+reproduced that refusal. The correction accepts only a matching finish reason
+with usage and an empty delta or empty content plus the assistant role; new
+content, tool fragments, conflicting finishes, and frames after `[DONE]` still
+refuse. The test checks both the unchanged reply and final token counts.
+Content completion and transport completion are different boundaries. A passing
+constructed stream is not evidence that every live provider frame shape matches it.
+
+### HTTP failure recovery must not depend on goal reminders
+
+During a Flint trial, Bill observed a provider-error card followed by an idle
+Agent instead of automatic recovery. A later status check found work continuing,
+but did not establish what resumed it. Reporting a failure, waking an observer
+and scheduling inference are separate capabilities.
+
+Ordinary requests now retain their admitted task while the actor backs off for
+1, 10, 100, then 1,000 seconds, indefinitely at the cap. Bill deliberately chose
+all HTTP failures and explicit provider errors, including unknown or apparently
+permanent categories, rather than a limited-attempt classification heuristic.
+Successful exchange resets the streak; pause suspends dispatch, and interrupt or
+shutdown clears the wait. A later human Wi-Fi-disconnect test produced several
+minutes of silence and required a host restart. It did not establish whether the
+transport stalled or reached backoff, but exposed two design gaps: errors were
+not in model dialogue, and incoming hints did not release the recovery wait.
+
+Recovery now records one marked error event for both the visible card and a
+labelled runtime-data contribution to model input. New human or child input and
+completed tool results reset the wait; errors and request-preparation bookkeeping
+do not. The next ordinary inference can reason about the error rather than merely
+resending an unchanged conversation. Bill suggested reusing goal reminders;
+one shared continuation timer and stale-wake generation now serve both reasons,
+without replacing a goal file or enabling reminders. The retained task still owns
+its reply. Success clears recovery, not the configured human goal.
+
+The first local regression failed because no second request arrived. It passed
+after retaining the original admission instead of finishing it on remote error.
+Further fake-provider checks cover successful resume, reset, cancellation,
+HTTP-200 error envelopes, explicit Responses failure, bounded structured Gemini
+and HTTP header advice, and preservation of a completed tool result with one
+effect. A broken network stream is retryable; a broken local trace writer is not.
+An explicit error event with null detail remains an error, unlike an optional
+null error field on a successful response.
+
+Chapters 5, 6 and 25 teach the ownership, parsing and timer boundaries at their
+construction points. Free-form English vendor wait advice still needs a supplied,
+tested format; it is not guessed. These checks use local fakes, not live provider
+recovery. Retry does not prove the first request was unprocessed or free: preserve
+the selected offering and funding, retain recorded tool effects, and never execute
+unfinished streamed calls. Installation and live acceptance remain separate.
+
+### A misplaced memory note must not stop the Agent
+
+Cadence wrote a continuity note as `memory/2026-11-16.md` through an ordinary
+file-writing tool. Session identities require a positive numbered suffix, such
+as `2026-11-16-3.md`. The next startup's corpus scan threw a format exception,
+closing Cadence's actor. The HTTP server continued serving the page, but the
+initial WebSocket failed, so the browser showed neither Agents nor conversation.
+
+Treat filenames discovered on disk as untrusted input. Skip and diagnose invalid
+session and archive names before reading their contents, preserving the files
+for correction. Apply the same policy when allocating a session number, including
+retired filenames; otherwise startup succeeds but the next compression still
+fails. Valid retired identities continue to reserve numbers. Strict transaction
+validation, overlapping valid archive detection, and I/O failures retain their
+existing behavior. Regression checks cover startup status and an actual request
+to a local fake provider, as well as scanning, allocation and escaped diagnostics.
+
+
+### Working context and memory budgets are separate policies
+
+A Flint chapter trial had a 200,000-token working-context limit but retained the
+application’s small memory defaults: 3,000 bytes for Conversation and 1,500 for
+each corpus band. Raising the token limit had not changed those byte policies.
+Bill noticed the mismatch after a handoff. Applying a handoff also checks whether
+to start conversation compression, so the small byte budget can trigger a second
+reduction immediately after tool traffic is removed. The observation establishes
+a policy mismatch, not a measured loss of particular facts or a diagnosis of the
+model’s later decisions.
+
+We changed the defaults to the larger engineering policy described in Chapter 22,
+using Cadence’s current settings as the starting point and rounding its terminal
+MEMORY budget from 9,994 to 10,000 bytes. New defaults must preserve explicit saved
+budgets and disabled flags; existing Agents need an intentional settings update.
+The regression checks all six resolved defaults, explicit old budgets, zero-budget
+fallback and disabled flags. All 400 native tests passed, and the GUI host built
+without warnings or errors. These are source checks, not installation or live
+policy-update evidence. The legacy codec fixture uses explicit historical
+values rather than deriving its supposed old policy from current defaults.
+
+A handoff still removes tool traffic, opaque replay, media and older checkpoint
+notes from active context while retaining ordinary prose, skills and the new
+continuation note. Larger memory budgets do not change that rule or reconstruct
+detail already summarized away. Configure both policies before a comparison, and
+record mid-trial changes as interventions rather than attributing the outcome to
+the experimental skill alone.
+
+
+### Recovering from a clipped read requires a location, not another guess
+
+A confined student's review repeatedly restarted a chapter at line1 while changing
+only its end line. Two recovery attempts returned byte-identical capped prefixes.
+The file text also said `[truncated]` while the enclosing Job could truthfully say
+`truncated:false`: source selection and report delivery had different limits.
+Knowing both settings existed did not make the recovery obvious.
+
+The reader now puts an explicit source-truncation notice before the excerpt,
+separates it from report clipping, and gives a safe continuation line. A byte cap
+inside a line requires rereading that line with a larger cap; advancing to the next
+line would lose text. Empty files and starts beyond EOF get explicit diagnostics.
+Original source evidence remains unnumbered and free of diagnostic text. Missing
+in-root paths now say “not found” at the failed native operation boundary instead
+of making errno2 sound like a sandbox escape. The permissions and no-follow
+acquisition rules are unchanged.
+
+Regressions first failed on the old continuation and missing-path messages, while
+existing sandbox-race checks still passed. After the correction, an older test had
+to stop assuming source text preceded the new notice. The broader suite also caught
+the active workflow package's exact read-file schema description; its declaration
+was synchronized without weakening the equality check or changing archived graders.
+The GUI regression also exposed an older assertion expecting public child deletion
+to erase its launch record. It now checks the retained record's retired flag and
+still checks that automatic restoration leaves the child absent; saved authority
+and restart eligibility remain distinct. No lifecycle implementation changed in
+that test correction. These are diagnostic and compatibility lessons, not evidence that a future model
+will recover correctly. Chapter3 and Chapter18 teach the revised behavior at its
+construction points; Flint-specific teaching and setup stay in the separate book.
+
+### Child questions must reach an idle supervisor
+
+During Flint's second chapter trial, the student requested grading after its
+parent had ended its turn. The question appeared in History, but the parent did
+not run until Bill intervened. The actor recorded child notices and pulsed current
+Job observers; it explicitly did not schedule inference for an idle parent.
+Recording, observer wake, and idle-turn admission are separate responsibilities.
+
+The correction reuses the actor's existing empty turn trigger after recording the
+notice once. An already queued model turn absorbs additional notices; an active
+turn receives a pending hint. Pause still defers inference, shutdown cancels queued
+work, and a root question for the human cannot wake the root to answer itself.
+Child text remains Tool-authority data, not a human or system instruction. Nested
+parents invalidate prior completion when new work is admitted. No timer, second
+inbox, or duplicated conversation is needed.
+
+The new idle-provider regression failed before the change because no request
+arrived. Focused checks cover idle delivery, coalesced paused delivery, busy hints,
+message placement, observer survival, and shutdown of a queued wake. Chapters 19
+and 20 teach the corrected scheduling contract at its construction points. Source
+checks do not establish that an installed host has the fix; installation and live
+child-message acceptance remain separate before the next Flint trial.
+
+The full native suite exposed a fixture assumption too: the workflow fake treated
+every provider request as a child assignment. The new parent wake was therefore
+mistaken for the second child turn. The corrected fake explicitly receives and
+checks the supervisor's question request before continuing the original two-child-
+assignment checks. It does not disable the wake or relax assignment identity.
 
 ---
 

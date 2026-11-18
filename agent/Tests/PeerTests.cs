@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Ensemble;
@@ -29,6 +30,72 @@ internal static class PeerTests
     private static string Text(Agent agent) => string.Join("\n", agent.History().Events()
         .SelectMany(fact => fact.Parts).OfType<TextPart>().Select(part => part.Text));
 
+    public static async Task Workspace(string directory)
+    {
+        string work = Path.Combine(directory, "peer-workspace");
+        string container = Path.Combine(work, "host");
+        string workspace = Path.Combine(work, "workspace");
+        string outside = Path.Combine(work, "outside.txt");
+        string imported = Path.Combine(work, "toolchain");
+        Directory.CreateDirectory(imported);
+        Directory.CreateDirectory(work);
+        File.WriteAllText(outside, "outside boundary");
+        var config = new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1", safeMode: true);
+        var app = new Application(TextWriter.Null, dataDirectory: container);
+        string home;
+        try
+        {
+            var root = new Agent(app, config, name: "root");
+            await Refuses(() => app.CreatePeerAsync(root, "no-root", processReadPaths: [imported]));
+            await Refuses(() => app.CreatePeerAsync(root, "bad-import", sandboxRoot: workspace, processReadPaths: ["relative"]));
+            var peer = await app.CreatePeerAsync(root, "confined", sandboxRoot: workspace, processReadPaths: [imported]);
+            home = peer.DataDirectory();
+            Check(peer.Sandbox().Root().Length != 0 && home == Path.Combine(peer.Sandbox().Root(), ".ensemble", "agents", "confined"),
+                "Sandboxed peer records escaped the workspace.");
+            Check(File.Exists(Path.Combine(home, "save.json")), "Workspace peer was not saved.");
+            await Refuses(() => { peer.Sandbox().ReadFile(outside); return Task.CompletedTask; });
+            await Refuses(() => app.CreatePeerAsync(root, "relative", sandboxRoot: "relative"));
+            await Refuses(() => app.CreatePeerAsync(peer, "escape", sandboxRoot: Path.GetPathRoot(workspace)));
+            peer.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+                parts: [new TextPart("workspace-owned history")]));
+            var entry = app.SavedPeers(root).Single();
+            Check(entry.SandboxRoot == peer.Sandbox().Root(), "Canonical workspace was not persisted.");
+            Check(entry.ProcessReadPaths is { Length: 1 } && entry.ProcessReadPaths.Value.SequenceEqual(peer.Configuration().ProcessReadPaths!.Value),
+                "Canonical imports were not persisted.");
+            var empty = await app.CreatePeerAsync(root, "no-imports", sandboxRoot: Path.Combine(work, "empty-workspace"),
+                processReadPaths: ImmutableArray<string>.Empty);
+            Check(app.SavedPeers(root).Single(entry => entry.Name == "no-imports").ProcessReadPaths is { IsEmpty: true },
+                "Explicit empty imports were not persisted.");
+        }
+        finally { app.Destroy(); }
+        app = new Application(TextWriter.Null, dataDirectory: container);
+        try
+        {
+            var root = new Agent(app, config, name: "root");
+            // A missing saved import must fail the whole preflight, not restore
+            // a different policy or partially construct the other saved peer.
+            Directory.Move(imported, imported + "-absent");
+            try
+            {
+                await Refuses(() => app.RestorePeersAsync(root));
+                Check(app.FindAgent("confined") is null && app.FindAgent("no-imports") is null,
+                    "Missing import caused a partial restore.");
+            }
+            finally { Directory.Move(imported + "-absent", imported); }
+            var peers = await app.RestorePeersAsync(root);
+            var restored = peers.Single(peer => peer.Name == "confined");
+            Check(peers.Single(peer => peer.Name == "no-imports").Configuration().ProcessReadPaths is { IsEmpty: true },
+                "Restoration lost the explicit empty import list.");
+            Check(restored.Configuration().ProcessReadPaths is { Length: 1 } restoredReads
+                && restoredReads[0].EndsWith("/toolchain", StringComparison.Ordinal),
+                "Restoration lost imported paths.");
+            Check(restored.DataDirectory() == home && Text(restored).Contains("workspace-owned history"),
+                "Restoration lost workspace state.");
+            await Refuses(() => { restored.Sandbox().ReadFile(outside); return Task.CompletedTask; });
+        }
+        finally { app.Destroy(); }
+    }
+
     public static async Task Persistence(string directory)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
@@ -46,6 +113,11 @@ internal static class PeerTests
         try
         {
             var root = new Agent(app, config, name: "root", skillSpec: specification);
+            await Refuses(() => app.CreatePeerAsync(root, "escape", sandboxRoot: Path.GetPathRoot(work)));
+            await Refuses(() => app.CreatePeerAsync(root, "extra-import", sandboxRoot: Path.Combine(work, "narrow"),
+                processReadPaths: [Path.GetDirectoryName(work)!]));
+            Check(app.FindAgent("escape") is null && app.FindAgent("extra-import") is null && app.SavedPeers(root).IsEmpty,
+                "Workspace escape changed peer membership or registry.");
             root.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("root-only dialogue")]));
             var writer = await app.CreatePeerAsync(root, "writer", "launch-writer", "writer", deadline.Token);

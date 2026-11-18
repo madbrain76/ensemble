@@ -31,19 +31,19 @@ internal static class OutputBudgetTests
     public static void Run()
     {
         var chat = Request(Vendor.OpenAI);
-        int cap = chat["max_completion_tokens"]!.GetValue<int>();
-        // A reasoning model pays for deliberation out of this same budget. At 1024
-        // the measured response was finish_reason "length" with the tool call cut off
-        // mid-arguments, which the GUI can only present as an agent that never acts.
-        Check(cap == 4096, $"chat completions must budget room to think and then act, got {cap}");
-        // Recovery doubles this when a reply is cut off, so the base must stay low
-        // enough that escalation is still available. 4096 leaves four doublings.
-        Check(cap <= 8192, $"base budget {cap} leaves the output-limit ladder no headroom");
+        long cap = chat["max_completion_tokens"]!.GetValue<long>();
+        // A reasoning model pays for deliberation out of this same budget. The
+        // measured failure was finish_reason "length" with the tool call cut off
+        // mid-arguments, which the GUI can only present as an agent that never
+        // acts, so both dialects now ask a provider for the whole ceiling.
+        Check(cap == Engine.OutputBudgetCeiling,
+            $"chat completions must budget room to think and then act, got {cap}");
 
-        // The same rule was not measured on the messages dialect, which has always
-        // required its own value; widening it here would be an unmeasured change.
+        // The messages dialect shares that ceiling. A model configured below it
+        // still doubles, so the ladder survives as a per-model decision rather
+        // than a default that pays for headroom the operator did not ask for.
         var messages = Request(Vendor.Anthropic);
-        Check(messages["max_tokens"]!.GetValue<int>() == 1024,
+        Check(messages["max_tokens"]!.GetValue<long>() == Engine.OutputBudgetCeiling,
             "the messages dialect's cap was changed without evidence");
     }
 }

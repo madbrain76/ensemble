@@ -65,7 +65,7 @@ poison body, so the assertion is live rather than decorative.
 - `agent/Tests`: 342 passed, 4 failed -- only the known `agent/Jobs/Pty.cs`
   macOS gates on this base. No change in count.
 - Real Firefox against the real launcher on a copy of the live data directory:
-  the imported `operator session` conversation loaded (587 cards), the composer
+  the imported 587-card conversation loaded, the composer
   armed, the prompt was sent, one request reached a capturing provider and the
   reply rendered with zero page errors.
 - A/B against the live endpoint. `BEFORE` is the request his agent logged in

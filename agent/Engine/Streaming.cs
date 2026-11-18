@@ -22,7 +22,8 @@ public sealed partial class Engine
         if (!response.IsSuccessStatusCode)
         {
             // Do not decode or retain a remote error body as a successful reply.
-            return new ParsedResponse(ParseResponse(config, status, "", out _), []);
+            return new ParsedResponse(ParseResponse(config, status, "", out _), [], ProviderFailure: true,
+                RetryAfter: await HttpRetryDelayAsync(config, response, cancellation));
         }
         string? mediaType = response.Content.Headers.ContentType?.MediaType;
         bool streaming = string.Equals(mediaType, "text/event-stream", StringComparison.OrdinalIgnoreCase);
@@ -37,7 +38,21 @@ public sealed partial class Engine
         }
         if (!streaming)
         {
-            string body = await response.Content.ReadAsStringAsync(cancellation);
+            string body = await ReadProviderAsync(() => response.Content.ReadAsStringAsync(cancellation));
+            // Explicit remote errors are protocol outcomes, not malformed successful replies.
+            try
+            {
+                if (JsonNode.Parse(body) is JsonObject failure
+                    && (String(failure, "type") == "error" || failure["error"] is not null))
+                {
+                    TimeSpan? delay = HeaderRetryDelay(response);
+                    if (config.Vendor == Vendor.Gemini && GeminiRetryDelay(failure) is TimeSpan advice
+                        && (delay is null || advice > delay)) delay = advice;
+                    return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                        error: ProviderStreamError(failure))], [], ProviderFailure: true, RetryAfter: delay);
+                }
+            }
+            catch (JsonException) { /* The ordinary decoder reports malformed JSON. */ }
             Parent().Trace("response", body, exchangeSecrets);
             var events = ParseResponse(config, status, body, out var billing);
             var ended = events.FirstOrDefault(fact => fact.Kind == EventKind.ResponseEnded);
@@ -79,7 +94,7 @@ public sealed partial class Engine
         }
         try
         {
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellation);
+            await using var stream = await ReadProviderAsync(() => response.Content.ReadAsStreamAsync(cancellation));
             using var reader = new StreamReader(stream, Encoding.UTF8, true, 4096, leaveOpen: true);
             var data = new StringBuilder();
             bool hasData = false;
@@ -87,13 +102,12 @@ public sealed partial class Engine
             // comments, event names, retry and id fields are not JSON payloads.
             while (true)
             {
-                string? line = await reader.ReadLineAsync(cancellation);
+                string? line = await ReadProviderAsync(() => reader.ReadLineAsync(cancellation).AsTask());
                 if (line is null || line.Length == 0)
                 {
                     if (hasData)
                     {
                         string payload = data.ToString();
-                        Parent().Trace("frame", payload, exchangeSecrets);
                         data.Clear();
                         hasData = false;
                         if (payload == "[DONE]")
@@ -114,13 +128,21 @@ public sealed partial class Engine
                                 ?? throw new FormatException("Empty stream frame");
                             // An explicit remote failure is valid protocol, not corrupt JSON.
                             // Discard assembled parts: displayed tool fragments authorize no effects.
-                            bool providerError = vendor == Vendor.Anthropic
-                                ? String(frame, "type") == "error" : frame.ContainsKey("error");
+                            bool providerError = String(frame, "type") == "error"
+                                || frame["error"] is not null;
                             if (providerError)
                             {
+                                TimeSpan? delay = HeaderRetryDelay(response);
+                                if (vendor == Vendor.Gemini && GeminiRetryDelay(frame) is TimeSpan advice
+                                    && (delay is null || advice > delay))
+                                {
+                                    delay = advice;
+                                }
                                 return new ParsedResponse([new Event(EventKind.ErrorOccurred,
-                                    error: ProviderStreamError(frame))], []);
+                                    error: ProviderStreamError(frame))], [], ProviderFailure: true,
+                                    RetryAfter: delay);
                             }
+                            Parent().Trace("frame", payload, exchangeSecrets);
                             switch (vendor)
                             {
                                 case Vendor.Anthropic:
@@ -403,8 +425,20 @@ public sealed partial class Engine
             {
                 continue;
             }
+            var delta = Required(choice, "delta").AsObject();
             if (state.FinishSeen)
             {
+                // Some gateways repeat the terminal choice with final usage.
+                // Accept accounting, not a second response or late tool fragments.
+                bool accounting = frame["usage"] is JsonObject
+                    && JsonNode.DeepEquals(choice["finish_reason"], state.Root["finish_reason"])
+                    && delta.All(field => field.Key switch
+                    {
+                        "role" => field.Value?.GetValue<string>() == "assistant",
+                        "content" => field.Value is null || field.Value.GetValue<string>() == "",
+                        _ => false
+                    });
+                if (accounting) continue;
                 throw new FormatException("Content after OpenAI finish reason");
             }
             if (choice["finish_reason"] is not null)
@@ -412,24 +446,19 @@ public sealed partial class Engine
                 state.FinishSeen = true;
                 state.Root["finish_reason"] = choice["finish_reason"]!.DeepClone();
             }
-            var delta = Required(choice, "delta").AsObject();
-            foreach (string field in new[] { "content", "reasoning_content" })
+            AccumulateChatReasoning(state, delta, emit);
+            if (delta["content"] is JsonNode textNode)
             {
-                if (delta[field] is not JsonNode textNode)
-                {
-                    continue;
-                }
                 string text = textNode.GetValue<string>();
-                int key = field == "content" ? -1 : -2;
-                if (!state.ToolIDs.TryGetValue(key, out int id))
+                if (!state.ToolIDs.TryGetValue(-1, out int id))
                 {
                     id = state.NextID++;
-                    state.ToolIDs.Add(key, id);
-                    state.Blocks.Add(id, new JsonObject { ["type"] = field, ["text"] = "" });
+                    state.ToolIDs.Add(-1, id);
+                    state.Blocks.Add(id, new JsonObject { ["type"] = "content", ["text"] = "" });
                 }
                 var block = state.Blocks[id];
                 block["text"] = String(block, "text") + text;
-                emit(new Chunk(id, field == "content" ? ChunkKind.Reply : ChunkKind.Thinking, Text: text));
+                emit(new Chunk(id, ChunkKind.Reply, Text: text));
             }
             if (delta["tool_calls"] is not JsonArray tools)
             {
@@ -566,11 +595,18 @@ public sealed partial class Engine
         var message = new JsonObject();
         // This is native OpenAI's completed-message order, not arrival order.
         // The independent ID list preserves the mapping across that projection.
-        foreach (string field in new[] { "content", "reasoning_content" })
+        foreach (string field in new[] { "content", "chat_reasoning" })
         {
             foreach (var (id, block) in state.Blocks.Where(pair => String(pair.Value, "type") == field))
             {
-                message[field] = block["text"]!.DeepClone();
+                if (field == "chat_reasoning")
+                {
+                    foreach (string nativeField in ChatReasoningFields)
+                    {
+                        if (block[nativeField] is JsonNode value) message[nativeField] = value.DeepClone();
+                    }
+                }
+                else message[field] = block["text"]!.DeepClone();
                 state.Order.Add(id);
             }
         }

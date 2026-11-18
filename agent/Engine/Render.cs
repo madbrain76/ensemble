@@ -32,7 +32,7 @@ public sealed partial class Engine
         {
             if (config.Vendor == Vendor.Anthropic)
             {
-                request["max_tokens"] = 16384;
+                request["max_tokens"] = Math.Max(config.MaxOutputTokens ?? 16384, 16384);
             }
             else if (config.Surface != Surface.Responses)
             {
@@ -507,19 +507,12 @@ public sealed partial class Engine
         return new JsonObject
         {
             ["model"] = config.Model,
-            ["max_tokens"] = 1024,
+            // Thinking consumes this allowance too; leave room to finish an answer or tool call.
+            ["max_tokens"] = config.MaxOutputTokens ?? 16384,
             ["system"] = config.PrimaryInstructions,
             ["messages"] = messages
         };
     }
-
-    // Deliberation is billed against the same budget as the answer, so an ordinary
-    // request needs room to think before it can emit anything at all. This number is
-    // not a style choice: measured against a reasoning endpoint at a high effort, a
-    // 1024-token budget returned finish_reason "length" with the tool call truncated
-    // mid-arguments, which an interface can only report as an agent that idles
-    // without acting. The same request at 4096 finished with two complete calls.
-    private const int OrdinaryOutputBudget = 4096;
 
     // Chat Completions uses a separate tool role and JSON arguments encoded as
     // a string. Canonical preserves number tokens before that string is produced.
@@ -557,11 +550,11 @@ public sealed partial class Engine
                 calls.Add(value);
             }
             var text = JsonCodec.Text(entry.Parts.Where(p => p is not ToolResultPart));
+            var opaque = entry.Parts.OfType<OpaquePart>().Where(p => p.From.Matches(target)).ToArray();
             bool hasMedia = entry.Parts.Any(p => p is BlobPart);
-            // Chat Completions has no opaque replay field on this surface: a
-            // provider-native block is neither re-sent nor counted as content, so
-            // an entry holding only one is omitted exactly as a bare entry would be.
-            if (text.Length == 0 && calls.Count == 0 && !hasMedia && !entry.Parts.Any(p => p is TextPart))
+            // Chat reasoning now has a replay field of its own, so an entry whose only
+            // provider-native block carries reasoning is no longer an empty entry.
+            if (text.Length == 0 && calls.Count == 0 && opaque.Length == 0 && !hasMedia && !entry.Parts.Any(p => p is TextPart))
             {
                 continue;
             }
@@ -575,8 +568,18 @@ public sealed partial class Engine
             {
                 message["tool_calls"] = calls;
             }
-            // Only media forces the part array here; opaque data has no place in it.
-            if (hasMedia)
+            // Reasoning belongs on the assistant message, never in content[].
+            var contentOpaque = opaque.Where(part => !ReplayChatReasoning(part, message)).ToArray();
+            // A content member with no type is what turned every resumed
+            // conversation into a 422, so a provider block the codec never
+            // recognizes cannot travel as content either; it is dropped, exactly
+            // as the entry that held nothing else would be.
+            contentOpaque = contentOpaque.Where(part =>
+                part.Data.ValueKind == JsonValueKind.Object
+                && part.Data.TryGetProperty("type", out var member)
+                && member.ValueKind == JsonValueKind.String).ToArray();
+            // Other non-text blocks retain their shape only on their source model.
+            if (contentOpaque.Length > 0 || hasMedia)
             {
                 var content = new JsonArray();
                 foreach (var p in entry.Parts)
@@ -601,6 +604,10 @@ public sealed partial class Engine
                     {
                         content.Add(OpenAIBlob(blob, budget));
                     }
+                    else if (p is OpaquePart o && contentOpaque.Contains(o))
+                    {
+                        content.Add(JsonCodec.Canonical(o.Data));
+                    }
                 }
 
                 message["content"] = content;
@@ -610,7 +617,8 @@ public sealed partial class Engine
         var request = new JsonObject
         {
             ["model"] = config.Model,
-            ["max_completion_tokens"] = OrdinaryOutputBudget,
+            // Reasoning and visible completion share this output allowance, not the input window.
+            ["max_completion_tokens"] = config.MaxOutputTokens ?? 16384,
             ["messages"] = messages
         };
         // This dialect takes the level at the top level, not inside a reasoning

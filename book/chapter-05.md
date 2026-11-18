@@ -395,6 +395,67 @@ These are replayable facts, not a fabricated error used to force a state change.
 The Chapter 2 states remain Idle, InputPending, InFlight and ToolsPending.
 Scheduling flags are transient actor control, not another canonical transcript.
 
+### Continue from the error without replacing the task
+
+An ordinary provider failure must not settle the admitted task and quietly create
+another one. Record the safe failure immediately in one ErrorOccurred event,
+marked as a provider failure. Its text parts project into model dialogue as
+labelled runtime data, while the same event supplies the visible error card.
+Serialize and read back the optional provider-failure reason and text parts in
+that event's codec; an in-memory projection alone loses the notice during journal
+replay. Preserve legacy string and message-only error records, and test the codec
+round trip followed by reduction into tool-role data rather than system authority.
+Legacy and local errors are not silently promoted into model input. Retain the
+active task and its work generation, and expose a waiting status with the failure
+count and continuation deadline. Engine classifies one exchange; the actor
+schedules an ordinary continuation from updated History, not a blind resend.
+
+Retry all unsuccessful HTTP statuses and explicit provider error responses,
+including unknown categories, with delays of 1, 10, 100, then 1,000 seconds.
+Continue at the cap until recovery or an explicit stop. This deliberately includes
+authentication and invalid-request responses: a human may correct the service or
+configuration while the task waits. It is not a claim that every failure is
+transient. Successful provider exchange resets the streak. So do recorded human
+messages, child hints and completed model-dispatched tool results. New input
+cancels a pending recovery wait without cancelling a healthy in-flight request.
+Errors, status queries, request-start facts, synthetic goal reminders and automatic
+snapshot collection do not reset it: recovery must not reset its own backoff.
+Keep the selected
+model, endpoint and funding; retry is never permission to select a paid fallback.
+
+Use the longer of that backoff and valid adapter-supplied retry advice. A timer
+only posts a wake message. Advance rechecks the deadline, pause and lifetime,
+so an early or stale callback cannot dispatch a request prematurely. Pause stops
+the timer but retains the deadline and original task; resume waits the remaining
+interval, or proceeds if it has elapsed. Interrupt and shutdown clear retry state
+and settle the original task through the normal cancellation path. New queued
+submissions do not replace the task already waiting.
+
+At recovery, build the next request from recorded state. Completed tool calls and
+results remain paired; do not replay their effects. Discard unfinished response
+assembly, including partial tool arguments. Retrying inference can still incur a
+second generation or charge: a failed exchange does not prove that the provider
+never processed the first request. This is not an exactly-once network protocol.
+
+Local authorization/setup failures, malformed responses, tool failures and
+cancellation retain their normal failure semantics. In particular, an I/O error
+from a diagnostic writer is not a provider outage. Translate I/O failure only at
+the actual network-read boundary, outside parsing, callbacks and local recording.
+Memory-compression workers retain their separately bounded lifetime rather than
+retrying indefinitely. Chapter 25 shares one generation-checked continuation
+timer between goal reminders and error recovery. Recovery is a temporary reason
+to continue, not a replacement goal file or permission to enable reminders.
+Success clears recovery without replacing or clearing the human's goal.
+
+Verify with a local failing provider: the same task must remain pending through
+failure and return its eventual reply, with one human input and no enabled goal.
+Check that the next wire request contains the recorded error as data, a new
+human message releases a pending wait and resets its streak, and observation
+alone does neither. Check pause/resume, interrupt/shutdown, success reset, capped
+delay selection, and a completed tool result present in both failed and retried continuation requests
+with exactly one effect. These additional requirements are not certification by
+the historical chapter grader.
+
 ### Reliable completion is not observation
 
 `SubmitAsync` creates a `TaskCompletionSource<string>` with asynchronous

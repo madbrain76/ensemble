@@ -25,9 +25,15 @@ const identity = endpoint => JSON.stringify(['local', endpoint, 'small']);
         async function select(endpoint) {
             await page.locator('#settings-open').click();
             const funding = page.getByLabel('Local inference default funding');
-            await funding.waitFor();
-            await funding.selectOption(endpoint === 'a' ? '0' : '1');
-            await page.locator('#funding-choices [role="status"]').filter({ hasText: 'Saved' }).waitFor();
+            // A host with several bindings on one vendor needs a saved default
+            // before the group resolves. Once a binding has been removed only one
+            // is left, and a sole available binding already resolves without a
+            // saved default, so the chooser is legitimately absent.
+            if (await funding.count()) {
+                await funding.selectOption(await funding.locator('option', {
+                    hasText: 'No authentication · ' + endpoint }).getAttribute('value'));
+                await page.locator('#funding-choices [role="status"]').filter({ hasText: 'Saved' }).waitFor();
+            }
             await page.locator('#settings-close').click();
             await page.waitForFunction(() => !document.querySelector('#model-choice option[data-preference]').disabled);
             await picker.selectOption(preferenceKey);
@@ -41,8 +47,14 @@ const identity = endpoint => JSON.stringify(['local', endpoint, 'small']);
         assert.equal(await picker.locator('option[data-preference]').count(), 1);
         assert.equal(await picker.locator('option[data-preference]').isDisabled(), true,
             'Ambiguous funding must not invent a default');
-        assert.match(await picker.locator('option[data-preference]').getAttribute('title'), /Default funding/);
-        assert.equal(await picker.locator('option[data-offering]').count(), 0, 'Model duplicated by funding');
+        assert.match(await picker.locator('option[data-preference]').getAttribute('title'),
+            /Default route is unavailable or ambiguous/);
+        // With no default funding to resolve, the two exact routes are the whole
+        // answer: the same frame is pinned at 2 qualified choices by
+        // agent/GuiTests/ConfiguredModelTests.cs, so the picker must offer both
+        // rather than guess a protocol from a shared vendor and wire-model name.
+        assert.equal(await picker.locator('option[data-offering]').count(), 2,
+            'Ambiguous default hid the exact routes that recover it');
         // A refused automatic save must restore the acknowledged choice and
         // leave the model unavailable; selecting again retries the real route.
         await page.route('**/models/funding', route => route.fulfill({

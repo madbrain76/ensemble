@@ -55,6 +55,7 @@ public sealed partial class Configuration
     // refused model: it earns capability from its own endpoint instead.
     public readonly bool ModelListed;
     public readonly ToolSchemaPolicy ToolSchemas;
+    public readonly long? MaxOutputTokens;
     public readonly long? ServingContextTokens;
     public readonly ModelIdentity? Offering;
     internal readonly ModelAuthentication? Authentication;

@@ -66,11 +66,11 @@ Verified against the built binaries, without touching a real LAN: the CLI refuse
 value and starts normally for a valid one. A wake is deliberately not attempted
 against `127.0.0.1`, because a refused port there with a pingable host means the
 machine is already up — proving the packet path needs an actually powered-down
-host, which is Bill's `llm` and remains unverified here.
+host, which is Bill's inference box and remains unverified here.
 
 ## The wake never left the machine (found 2026-11-06, by Bill)
 
-Bill reported that after shutting `llm` down the server simply never came up. It
+Bill reported that after shutting the inference box down the server simply never came up. It
 could not have: `SendWakePacket` opened a plain `UdpClient`, and the kernel refuses
 to deliver a broadcast on a socket that did not ask for `SO_BROADCAST`. Measured
 against his configured provider, with the destination computed from the routing
@@ -79,7 +79,7 @@ interface `10.0.4.30/255.255.248.0`:
 ```
 SEND 10.0.7.255:9 -> SocketException: Permission denied   <- the only packet a powered-off card hears
 SEND 10.0.5.20:9  -> wrote 102                             <- unicast, dropped at ARP
-SHIPPED SendWakePacket(llm) -> True                              <- "sent Wake-on-LAN packet"
+SHIPPED SendWakePacket(inference) -> True                              <- "sent Wake-on-LAN packet"
 ```
 
 So the one destination that can wake a sleeping host was refused, the destination
@@ -115,7 +115,7 @@ read as a slow server.
 
 `Agent.BeginProviderWake`/`EndProviderWake` now publish a `WorkActivity` in the
 existing live-status seam, checked ahead of the model branch and released from a
-`finally`, so the row reads `Waking llm` for as long as the machine is coming up.
+`finally`, so the row reads `Waking <label>` for as long as the machine is coming up.
 Two mutants, each caught by its own assertion: dropping the `BeginProviderWake` call
 fails the observation of a real wake in flight (`got ''`), and moving the check
 behind the model branch fails with `got 'Waiting for the model response'`, the exact
@@ -125,7 +125,7 @@ and the mutant proves the branch executes rather than being skipped.
 
 Still unverified here: waking Bill's actual hardware. Both fixes are measured at the
 socket and at `/proc/net/snmp`, which is the last point this side of the network
-card, and a real wake needs `llm` powered down.
+card, and a real wake needs the inference box powered down.
 
 **The first version was not visible either.** Publishing a `WorkActivity` is not the
 same as showing one: the agent tree renders `phase/tool/detail` only into the row's
@@ -141,7 +141,7 @@ assertions still pass unchanged.
 
 ## Ping was suppressing the wake (found 2026-11-06, Bill's second report)
 
-After the broadcast fix Bill powered `llm` down again and still got nothing, with
+After the broadcast fix Bill powered the inference box down again and still got nothing, with
 only `Connection unavailable; work may still be running.` in the browser and no
 wake line anywhere in the log. The remaining defect was the decision itself:
 
@@ -170,7 +170,7 @@ port, which is genuinely the awake case. Reinstating the ping branch fails it wi
 
 ## The sequence Bill actually runs
 
-Suspend llm, start `run.sh`, type into an agent. Nothing in the code supported that
+Suspend the inference box, start `run.sh`, type into an agent. Nothing in the code supported that
 order: the packet was sent only from inside a turn, so step 2 did nothing at all and
 step 3 began the wake then, making the first prompt wait out the whole boot. The GUI
 now asks the provider to come up while composing the root Agent, before it binds, and
@@ -197,7 +197,7 @@ across a 3s wait: 1`.
 
 ## Aimed at the address that actually arrives, and only on the operator's prompt
 
-Bill's Home Assistant wakes `llm` with **no** broadcast address configured, which
+Bill's Home Assistant wakes the inference box with **no** broadcast address configured, which
 means it sends to the limited broadcast `255.255.255.255:9`, and it works. The port
 sent only the directed broadcast computed from the interface mask -- on this network
 `10.0.7.255` -- plus a unicast that cannot reach a powered-off card. A directed

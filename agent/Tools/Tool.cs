@@ -128,7 +128,7 @@ public sealed partial class Tool
                 Field("path", "string", "File path.", true);
                 Field("start_line", "integer", "First line, default or zero means 1.");
                 Field("end_line", "integer", "Last line, default or zero means end of file.");
-                Field("max_bytes", "integer", "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Truncation is reported; prefixes are not file content.");
+                Field("max_bytes", "integer", "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Source truncation gives a safe continuation line, separately from report clipping. Prefixes/notices are not file content.");
                 break;
             case ToolKind.ListDirectory:
                 name = "list_directory";
@@ -246,7 +246,20 @@ public sealed partial class Tool
                 description = "Create an owned child, restore its conversation, and admit task. A running Job reports the child ID while retaining its task reply. Canceling that Job only stops observing; use shutdown_agent to drain or kill_agent to cancel the child. Completion requires explicit submit, not ordinary final text.";
                 Field("agent_id", "string", "Unique direct child ID.", true);
                 Field("task", "string", "Delegated task.", true);
-                Field("model", "string", "Optional compatible same-provider model.");
+                Field("model", "string", "Optional compatible same-provider model; mutually exclusive with offering.");
+                Field("offering", "object", "Exact registered route. Mutually exclusive with model; never changes credentials or falls back.");
+                properties["offering"]!["properties"] = new JsonObject
+                {
+                    ["vendor"] = new JsonObject { ["type"] = "string" },
+                    ["endpoint"] = new JsonObject { ["type"] = "string" },
+                    ["model"] = new JsonObject { ["type"] = "string" }
+                };
+                properties["offering"]!["required"] = new JsonArray("vendor", "endpoint", "model");
+                properties["offering"]!["additionalProperties"] = false;
+                Field("primary_skill", "string", "Exact primary skill from the creator's catalog. Starts with that primary's dependencies, not inherited startup selections.");
+                Field("confined", "boolean", "Confine a fresh child's commands and file tools to its assigned child directory. Project files and writable caches belong there.");
+                Field("process_read_paths", "array", "Explicit read-only command imports. Omitted inherits; empty drops imports. A confined creator cannot widen access. New launch options require a fresh child ID.");
+                properties["process_read_paths"]!["items"] = new JsonObject { ["type"] = "string" };
                 Field("working_context_tokens", "integer", "Optional positive working input-token limit; saved before the first task, bounded by known model capacity.");
                 Field("submit_schema", "object", "Optional complete bounded submission schema; validated before child creation.");
                 break;

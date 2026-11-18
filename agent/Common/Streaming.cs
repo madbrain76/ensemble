@@ -12,13 +12,28 @@ public sealed record Chunk(int PartID, ChunkKind Kind, string Text = "",
 // milliseconds so a reload shows the original clock time; Elapsed is the span from
 // the first fragment to the last. A part that never streamed has no span at all.
 public sealed record PartSpan(long Started, long Elapsed);
+// Value-like completed transport outcome. ProviderFailure distinguishes explicit
+// remote rejection/network failure from local or malformed-response failures.
+// RetryAfter is validated delay advice, not provider prose or scheduling authority.
+// The two new facts come last, and every caller already names them, so no existing
+// positional argument shifts.
 public sealed record ParsedResponse(ImmutableArray<Event> Events,
     ImmutableArray<int> PartIDs, bool ToolBeforeText = false, UsageIdentity? Billing = null,
     bool IncompleteOutput = false, bool OutputCapped = false, bool ToolCallCapped = false,
-    ImmutableArray<PartSpan> Spans = default);
+    ImmutableArray<PartSpan> Spans = default, bool ProviderFailure = false,
+    TimeSpan? RetryAfter = null);
 
 public sealed partial class Engine
 {
+    private static readonly string[] ChatReasoningFields = ["reasoning_content", "reasoning", "reasoning_details"];
+
+    private static partial Task<T> ReadProviderAsync<T>(Func<Task<T>> read);
+
+    private static partial TimeSpan? HeaderRetryDelay(HttpResponseMessage response);
+    private static partial TimeSpan? GeminiRetryDelay(JsonObject frame);
+    private static partial Task<TimeSpan?> HttpRetryDelayAsync(Configuration config,
+        HttpResponseMessage response, CancellationToken cancellation);
+
     // One HTTP parsing seam for JSON and SSE. The callback is a transient output
     // sink for this invocation, never a stored service or a History writer.
     public partial Task<ParsedResponse> ParseAsync(HttpResponseMessage response,
@@ -37,6 +52,7 @@ public sealed partial class Engine
         public readonly Dictionary<(int Item, int Part), int> IDs = new();
         public readonly Dictionary<int, string> Displayed = new();
         public JsonObject? Terminal;
+        public bool ProviderFailure;
         public bool SeenText;
         public bool ToolBeforeText;
     }
@@ -57,5 +73,7 @@ public sealed partial class Engine
         public bool SeenText;
         public bool ToolBeforeText;
         public int? GeminiCurrent;
+        public string? ChatReasoningDisplayField;
+        public string ChatReasoningDisplayed = "";
     }
 }

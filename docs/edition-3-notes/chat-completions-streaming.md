@@ -62,7 +62,7 @@ arrive.
 ## CORRECTION, same evening: enabling streaming broke chat, and my verification missed it
 
 The paragraph above checked that a turn **rendered progressively** and never that it
-**completed**. That is precisely the hole this endpoint fell into. `llm` is a freetoken
+**completed**. That is precisely the hole this endpoint fell into. The operator's inference box runs a freetoken
 fork that appends its own informational frames, and `AccumulateOpenAI` required
 `choices` on every frame, so `{"freetoken_completion_tokens_delta":1}` aborted the
 exchange: a minute of prefill, then `Invalid provider stream`. One request after the

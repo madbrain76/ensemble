@@ -33,7 +33,16 @@ const { launchBrowser } = require('./browser-launch.cjs');
                 catch (error) { throw new Error(`Expected ${text}; tool=${await page.locator('#renderer-tool').inputValue()}; status=${await state.textContent()}`, { cause: error }); }
             }
             async function panel() {
-                await page.locator('#settings-open').click();
+                // The open button is in the markup before the module that listens
+                // for it has run, so a click can land with no effect. The dialog
+                // being open is the precondition the tab click actually needs.
+                for (let attempt = 0; attempt < 5; attempt++) {
+                    await page.locator('#settings-open').click();
+                    const opened = await page.waitForFunction(
+                        () => document.querySelector('#settings-dialog').open,
+                        null, { timeout: 2000 }).then(() => true, () => false);
+                    if (opened) break;
+                }
                 await page.locator('#settings-display-tab').click();
             }
             async function candidate(marker, broken = false) {

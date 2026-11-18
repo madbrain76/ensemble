@@ -29,13 +29,19 @@ has no Chrome and reviews this GUI in Firefox, the whole tier could not run, so
 
 ## Result on Linux + Firefox
 
-After merging upstream `068d2abf`, 67 pass, 0 fail, 4 skipped of 71, on
-2026-11-16. Every skip is a capability the platform does not have, not an
+After merging upstream `ac3ac1a2`, 67 pass, 0 fail, 4 skipped of 71, on
+2026-11-17. Every skip is a capability the platform does not have, not an
 outcome: `page-capture-native.cjs`, `page-capture-native-ui.cjs` and
 `capture-model-native.cjs` drive the macOS system PTY and launch-services
 capture path, and `advanced-artifact-figures.cjs` is the human-authorized
 book-figure capture that overwrites the approved PNGs in
 `book/figures/advanced-artifacts`. Bill runs that one; the tier must not.
+
+Upstream rewrote `configured-models.cjs` and `peer-choices.cjs` for its new
+funding controls, and both still launched through the frozen `edition-2`
+Playwright copy, so neither had ever run off macOS: each stopped at its first
+assertion and everything behind that stop was unmeasured. What follows is what
+they turned out to need.
 
 Upstream added nine browser suites since the previous merge. Six arrived still
 requiring Playwright out of the frozen `edition-2` tree, so on Linux they could
@@ -178,3 +184,43 @@ That change is its own branch, `fix/platform-refused-job-command`, and this
 branch sits directly on it because the crossover fixture cannot start on Linux
 without it. It is not a Firefox change and should be reviewed, and if accepted
 merged, as a separate pull request.
+
+## What the funding suite found after the merge to `ac3ac1a2`
+
+`configured-models.cjs` asserted a label upstream itself had renamed, so it
+stopped before reaching any of its funding flow. Once that stopped masking the
+rest, two more assumptions proved specific to the author's machine:
+
+- It expected no exact-route options beside an unresolved default. The frame the
+  same fixture serves carries two qualified choices, and
+  `agent/GuiTests/ConfiguredModelTests.cs` pins exactly that count and requires
+  them to stay displayable for recovery, so the picker must show both. The
+  browser check now asserts two and says why.
+- It expected the funding chooser to survive the removal of one of two bindings.
+  With one binding left there is nothing to disambiguate, and the panel renders
+  no chooser, which is the documented behaviour of the sole-binding case in
+  `agent/gui/wwwroot/settings.js`. The suite now selects by option text when a
+  chooser exists and proceeds when it legitimately does not.
+
+Neither change weakens a check: the funding POST, the refusal rollback, the
+unavailable reload and the peer recovery are all still exercised, and the
+suite now runs its whole length here for the first time.
+
+## Why `renderer-trials.cjs` needed a precondition wait
+
+Run inside the full tier on a loaded machine this suite failed at
+`agent/GuiTests/renderer-trials.cjs:37` with "element is not visible" after 59
+retries; run on its own it passed all nine checks. The cause is a click that
+precedes its own listener: `agent/gui/wwwroot/settings.js` attaches the open
+handler to `#settings-open` when the module runs, so under CPU starvation the
+button is clickable before anything is listening, the dialog never opens, and
+the `Speech & Display` tab inside it stays hidden forever. Playwright's own
+visibility wait cannot rescue that, because the precondition that failed was the
+previous click.
+
+`panel()` now re-asserts the precondition instead of assuming it: it clicks,
+waits two seconds for `#settings-dialog.open`, and retries up to five times
+before clicking the tab. The check is unchanged in what it proves -- the real
+renderer controls behind the real settings dialog -- and the retry only removes
+the ordering assumption. `renderer-trials.cjs` passes standalone and in the full
+tier, which is what took the result from 66/1/4 to 67/0/4.

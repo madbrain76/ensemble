@@ -8,8 +8,9 @@ public sealed partial class Ensemble
     private readonly string? dataDirectory;
     public partial string DataDirectory();
     // No filesystem effects or second Agent registry: derive a named home from
-    // this parent's configured container. Unnamed transient Agents get no home.
-    internal partial string? AgentDirectory(string? name);
+    // this parent's configured container, or inside a confined workspace when
+    // the container is outside it. Unnamed transient Agents get no home.
+    internal partial string? AgentDirectory(string? name, string sandboxRoot = "");
     /// <summary>Find history the Go implementation left in a directory it was once
     /// started from and install it here, so resuming those conversations needs no
     /// operator action. Silent and idempotent: returns a sentence describing what it

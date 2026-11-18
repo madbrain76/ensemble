@@ -105,6 +105,8 @@ try
         await AsyncCase("Messages gateway and native authentication headers", MeterTests.MessagesAuthentication);
         await AsyncCase("Offering tool-schema projection and pre-effect validation", ToolSchemaPolicyTests.RunAsync);
         await AsyncCase("OpenRouter Messages thinking and tool continuation", MeterTests.OpenRouterMessagesRoundTrip);
+        await AsyncCase("OpenRouter Chat reasoning and tool continuation", MeterTests.OpenRouterChatRoundTrip);
+        await AsyncCase("Chat reasoning stream, replay and provenance", MeterTests.ChatReasoningCodec);
         await AsyncCase("Configured endpoint has no retained cookie authority", MeterTests.ModelEndpointCookies);
         await AsyncCase("Configured request projection and explicit authentication", MeterTests.ConfiguredProjection);
         await AsyncCase("Configured Chat SSE tool round trip", MeterTests.ConfiguredStreamingTools);
@@ -222,6 +224,18 @@ try
         if (args is ["--skill-tests"])
         {
             Console.WriteLine($"Skill tests: {passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
+    if (args is ["--provider-retry-tests"] || args.Length == 0)
+    {
+        await AsyncCase("provider retry retains original task", () => MeterTests.ProviderRetryKeepsTask(temp));
+        await AsyncCase("provider retry advice and classification", () => MeterTests.ProviderRetryAdvice(temp));
+        await AsyncCase("provider retry pause interrupt shutdown", () => MeterTests.ProviderRetryPauseAndStop(temp));
+        if (args is ["--provider-retry-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
             return failures == 0 ? 0 : 1;
         }
     }
@@ -410,6 +424,8 @@ try
     if (args is ["--memory-disk-tests"] || args.Length == 0)
     {
         CheckCase("memory disk ownership and fresh scan", MemoryDiskTests.OwnershipAndScan);
+        CheckCase("memory malformed filenames and allocation", MemoryDiskTests.MalformedNames);
+        await AsyncCase("memory malformed filename startup", () => MeterTests.MemoryMalformedNameStartup(temp));
         CheckCase("memory conversation staging", MemoryDiskTests.ConversationStaging);
         CheckCase("memory graduation crash recovery", MemoryDiskTests.GraduationRecovery);
         CheckCase("memory stale corrupt and confined inputs", MemoryDiskTests.RefusalAndConfinement);
@@ -545,6 +561,7 @@ try
     }
     if (args is ["--peer-tests"] || args.Length == 0)
     {
+        await AsyncCase("Peer workspace confinement and restoration", () => PeerTests.Workspace(temp));
         await AsyncCase("Chapter 21 durable peer launch and restoration", () => PeerTests.Persistence(temp));
         await AsyncCase("Chapter 27 configured peer launch and restoration", () => ConfiguredPeerTests.Persistence(temp));
         await AsyncCase("Stopped peer recovery after mounted Agent switches provider", () => ConfiguredPeerTests.Recovery(temp));
@@ -634,6 +651,7 @@ try
         await AsyncCase("Chapter 20 non-sticky observation pulse", () => ActorTests.MessagePulse(temp));
         await AsyncCase("Chapter 20 human control observation wake", () => ActorTests.MessageControlWake(temp));
         await AsyncCase("Chapter 20 question wake and inbox isolation", () => ActorTests.MessageQuestionIsolation(temp));
+        await AsyncCase("Chapter 20 idle and paused question wake", () => ActorTests.MessageIdleQuestion(temp));
         await AsyncCase("Chapter 20 model-led question wake", () => ActorTests.MessageQuestionModel(temp));
         if (args.Length != 0)
         {
@@ -645,6 +663,7 @@ try
     {
         await AsyncCase("ordinary child restart ownership and completion", () => ActorTests.ChildRestart(temp));
         await AsyncCase("configured child restart preserves route identity", () => ConfiguredChildTests.Restart(temp));
+        await AsyncCase("selected child launch preserves authority", () => ConfiguredChildTests.Launch(temp));
         await AsyncCase("restored child goal resumes through real actor", () => ActorTests.ChildRestartReminder(temp));
         if (args.Length != 0)
         {
@@ -775,6 +794,7 @@ try
     }
     if (args is ["--process-files-tests"] || args.Length == 0)
     {
+        await AsyncCase("Trusted grading preparation boundaries", SandboxProcessTests.GradingPreparation);
         await AsyncCase("Chapter 19 confined process boundary", SandboxProcessTests.Boundary);
         await AsyncCase("Chapter 19 confined process useful work", SandboxProcessTests.UsefulWork);
         if (args.Length != 0)
@@ -1451,18 +1471,13 @@ CheckCase("Per-channel streaming selects and refuses", StreamChannelTests.Run);
             {
                 var a = NewAgent(app, vendor, "http://127.0.0.1:" + port);
                 a.SetEphemeral("ONCE_ONLY");
-                try
-                {
-                    await a.SendAsync("first", deadline.Token);
-                    throw new Exception("Expected provider refusal");
-                }
-                catch (InvalidOperationException) { }
-                Check(a.History().View().Phase == Phase.Idle, "failure returns idle");
-                var text = await a.SendAsync("second", deadline.Token);
+                // One admission survives the refusal; request-local ephemera
+                // are consumed by the failed attempt, not restored for retry.
+                var text = await a.SendAsync("first", deadline.Token);
                 await server;
-                Check(text == "local reply" && requests.Count == 2, "actual response and no retry");
+                Check(text == "local reply" && requests.Count == 2, "original task recovered with exactly one retry");
                 Check(requests[0].Contains("ONCE_ONLY") && !requests[1].Contains("ONCE_ONLY"), "ephemera consumed across real failure");
-                Check(requests[1].Contains("first") && requests[1].Contains("second"), "recorded conversation retained");
+                Check(requests[1].Contains("first") && a.History().Events().Count(e => e.Kind == EventKind.MessageReceived && e.Actor == Actor.Human) == 1, "retry retained conversation without another human admission");
                 Check(a.History().View().Usage.Input == 3 && a.History().View().Usage.Output == 2, "real usage derived from events");
                 Check(a.History().Events().All(e => !JsonCodec.WriteEvent(e).Contains("dummy-local-only")), "credentials not recorded");
             }

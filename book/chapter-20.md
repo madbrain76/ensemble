@@ -149,6 +149,29 @@ A host restart used to remove every live child from the tree even though its fil
 
 I require ordinary children to carry their restart registration in their own home. There is no second global child registry. `child.json` records a version, local identity, model, submission schema and accepted-work generation, current submission and pause flags, an acknowledged submission checksum, and goal configuration. It contains no credentials, provider endpoint, transcript copy, process handle, or copied service bag. Common owns this vocabulary and the real Agent fields; the functional Agent partial implements persistence and reconstruction through its Sandbox.
 
+Version three also records the effective canonical sandbox root and read-only
+imports, plus an explicit primary-skill override when selected. Root and imports
+are mandatory in this version: an empty root means unrestricted, not inheritance.
+Continue reading older versions under their original inheritance rules; reject
+unknown fields and malformed policy instead of silently reverting to defaults.
+Restore through the current parent's narrowing policy and refuse missing imports
+or roots rather than recreating an apparently restored workspace.
+
+A new assignment reusing an ID retains its saved launch policy without reviving
+old submission or pause state. Refuse replacement launch options for that ID;
+choose a fresh ID for a different trial. Persist the primary override on the
+Agent so later settings writes cannot erase it. Test creation, reuse and host
+restoration separately, including outside-path refusal and startup-skill isolation.
+
+Public `shutdown_agent` and `kill_agent` retire automatic restart through explicit
+child deletion, unlike host teardown or direct lifetime destruction. Version four
+adds a required boolean `Retired` field to the same launch record. Save it before
+teardown; do not delete the policy. Automatic restoration skips retired records.
+Explicit reuse reads their model, primary and sandbox policy, clears old completion,
+and saves an active record for the new assignment. Older records remain readable.
+Test actual public shutdown, automatic-restore exclusion and explicit safe reuse.
+Prepared role files and cancelled startup must still permit ordinary creation.
+
 Save changed restart settings before acknowledging them. New accepted work invalidates prior completion in the restart record even while the historical `submit.md` remains available. A restored submitted flag is usable only with the matching generation, payload checksum and a valid existing submission artifact. These are separate file replacements, not a multi-file transaction; a mismatch refuses restoration rather than inventing acceptance. In particular, reading an arbitrary old answer still cannot complete newer work. Model choices remain subject to the current parent's provider and sandbox policy.
 
 The host composition root calls `RestoreChildrenAsync`. Enumerate and validate ordinary child registrations, construct through the actual parent, restore each child's own History, initialize current skills, and reconstruct descendants. Refuse malformed or identity-mismatched records rather than treating corruption as an empty fleet. A failed restoration joins and removes the children it just constructed. An already-live child is not duplicated. Borrowed GUI mounts do not become startup owners.
@@ -246,6 +269,12 @@ Output polling must not consume the GUI's shared lossy observation queue. Use ca
 This illustrates the output shape, not a promise that idle implies submitted. They are independent fields.
 
 `send_message` admits `Message` through the actor, so it becomes steering during active work or a new turn when idle. An incoming message wakes current Job observations without killing the Jobs and without creating a sticky interrupt for future observers, as established in Chapter 19.
+
+The same scheduling principle applies upward: a child's question records labeled
+Tool-authority data and starts an idle parent, or reaches its active turn as a
+hint. A human pause defers the turn until resume. Recording the question and
+waking a Job observer are not substitutes for this idle-turn admission; neither
+requires goal reminders. Root questions addressed to a human do not self-wake.
 
 `ask_agent` instead uses a separate `SubmitAsync` admission and waits for that turn's reliable reply. It does not consume an older assistant final from a shared cursor. It has no cursor parameter and does not automatically fetch the structured submission payload. Use `get_submission` for historical typed data and `join_agents` for current selected-child completion.
 

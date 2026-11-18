@@ -9,12 +9,18 @@ namespace Ensemble;
 internal sealed record ChildRestartState(int Version, string ID, string Model,
     JsonElement Schema, long Generation, bool Submitted, string? SubmissionHash, bool Paused,
     GoalConfiguration Goal,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ModelIdentity? Offering = null);
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ModelIdentity? Offering = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? PrimarySkill = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SandboxRoot = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ImmutableArray<string>? ProcessReadPaths = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? Retired = null);
 
 public sealed partial class Agent
 {
     private bool childRestartEnabled;
     private bool childRestoring;
+    // Explicit primary selection, if any. Null retains ordinary bootstrap inheritance.
+    private string? childPrimarySkill;
     /// <summary>Restore registered ordinary descendants under current runtime
     /// authority. Restore History, not interrupted calls or process Jobs. Enabled
     /// goals restart with a fresh idle interval; paused/submitted children stay idle.
@@ -23,9 +29,9 @@ public sealed partial class Agent
     internal partial void RetireChildRestart();
     private partial void SaveChildRestart(GoalConfiguration? goal = null,
         bool? pause = null, long? generation = null, bool? submitted = null,
-        Configuration? selection = null, JsonElement? completion = null);
+        Configuration? selection = null, JsonElement? completion = null, bool retired = false);
     private partial ChildRestartState? ReadChildRestart(string id);
     private partial Task<Agent> CreateChildCoreAsync(string childID, string? model,
-        JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser = false, long? workingContextTokens = null);
+        JsonElement? submitSchema, ChildRestartState? restart, CancellationToken cancellation, bool waitForBrowser = false, long? workingContextTokens = null, ChildLaunchOptions? launch = null);
     private partial Task RestoreChildGoalAsync(ChildRestartState restart, CancellationToken cancellation);
 }

@@ -175,6 +175,22 @@ public sealed partial class Agent
             fact = fact.WithDisplay(responseID, partIDs, spans.IsDefault ? null : spans);
         }
         var saved = History().Append(fact);
+        // Only durable work/progress resets recovery. Request starts, errors,
+        // timers and status observations cannot reset their own failure streak.
+        if ((fact.Kind == EventKind.MessageReceived && fact.Actor == Actor.Human
+                && active?.AutomaticGoal != true)
+            || fact.Kind is EventKind.HintReceived or EventKind.ResponseEnded
+                or EventKind.ToolReturned)
+        {
+            ClearProviderRetry();
+            if (goalFailureCount != 0)
+            {
+                StopGoalTimer();
+                goalFailureCount = 0;
+                goalProviderRetryDelay = null;
+                goalRetryError = "";
+            }
+        }
         var after = History().View().Phase;
         if (before != after)
         {
@@ -359,6 +375,7 @@ public sealed partial class Agent
         }
         finally
         {
+            ClearProviderRetry();
             DisableGoal(persist: false);
             // The fault path may have bypassed Shutdown mail. Join before any
             // owner can destroy History, Memory or Sandbox; do not try to append
@@ -433,6 +450,14 @@ public sealed partial class Agent
             ConfigureGoal(message);
             return;
         }
+        if (message.Kind == MailKind.ProviderRetryWake)
+        {
+            if (message.GoalGeneration == continuationGeneration)
+            {
+                StopContinuationTimer();
+            }
+            return; // Advance rechecks pause, lifetime and the actual deadline.
+        }
         if (message.Kind == MailKind.GoalWake)
         {
             WakeGoal(message);
@@ -471,13 +496,32 @@ public sealed partial class Agent
                     });
                 Record(new Event(EventKind.HintReceived, actor: Actor.Tool,
                     parts: [new TextPart(notice)]));
-                if (active is not null)
+                if (active is null)
                 {
+                    // History already contains the notice. Queue only a turn
+                    // trigger, coalescing notices behind an existing model turn.
+                    // Advance owns pause enforcement; no timer or observer is
+                    // required to start this work when scheduling is allowed.
+                    if (!requests.Any(request => request.Kind == MailKind.Submit))
+                    {
+                        requests.Enqueue(new Mail(MailKind.Submit,
+                            WorkGeneration: AdmitChildWork()));
+                    }
+                }
+                else
+                {
+                    // A nested parent must not advertise an old submission as
+                    // completion of newly received work. This changes scheduling,
+                    // not the child notice's Tool authority in History.
+                    if (!requests.Any(request => request.WorkGeneration != 0))
+                    {
+                        StartChildWork(AdmitChildWork());
+                    }
                     hintPending = true;
                 }
                 Jobs().WakeObservers();
             }
-            return; // An idle parent records data but admits no new model task.
+            return;
         }
         if (message.Kind == MailKind.WorkStatus)
         {
@@ -807,15 +851,29 @@ public sealed partial class Agent
                 : [];
             foreach (var fact in parsed.Events)
             {
-                Record(fact, fact.Kind == EventKind.ResponseEnded ? parsed.PartIDs : default,
+                // One durable error serves the card and model continuation.
+                // The label is runtime data, never a new system instruction.
+                var recorded = parsed.ProviderFailure && fact.Kind == EventKind.ErrorOccurred
+                    ? new Event(EventKind.ErrorOccurred, error: fact.Error, reason: "provider_failure",
+                        parts: [new TextPart("Provider failure (runtime data): " + fact.Error)])
+                    : fact;
+                // The spans belong to the response this record came from, so they
+                // travel with it whether or not a provider failure relabelled it.
+                Record(recorded, fact.Kind == EventKind.ResponseEnded ? parsed.PartIDs : default,
                     fact.Kind == EventKind.ResponseEnded ? parsed.Spans : default);
             }
             var failure = parsed.Events.FirstOrDefault(e => e.Kind == EventKind.ErrorOccurred);
             if (failure is not null)
             {
+                if (ScheduleProviderRetry(parsed))
+                {
+                    return;
+                }
+                goalProviderRetryDelay = parsed.ProviderFailure ? parsed.RetryAfter : null;
                 Finish(new InvalidOperationException(failure.Error));
                 return;
             }
+            ClearProviderRetry();
             var response = parsed.Events.Last(e => e.Kind == EventKind.ResponseEnded);
             ObserveMemoryPressure(response);
             calls = response.Parts.OfType<ToolCallPart>().ToImmutableArray();
@@ -967,6 +1025,10 @@ public sealed partial class Agent
         {
             return;
         }
+        if (AwaitProviderRetry())
+        {
+            return;
+        }
         if (active is null)
         {
             if (!requests.TryDequeue(out active))
@@ -974,6 +1036,7 @@ public sealed partial class Agent
                 return;
             }
             StopGoalTimer();
+            goalProviderRetryDelay = null;
             if (active.Kind == MailKind.Submit)
             {
                 StartChildWork(active.WorkGeneration);
@@ -1111,6 +1174,7 @@ public sealed partial class Agent
 
     private partial void Finish(Exception? error)
     {
+        ClearProviderRetry();
         if (active is not null)
         {
             // Direct host tool calls are not delegated model tasks. A correction

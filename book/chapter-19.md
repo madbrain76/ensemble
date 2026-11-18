@@ -298,7 +298,48 @@ might need in reverse order. Sandbox policy derivation must not hold its gate
 while reaching back into Agent ingress. Recheck admission after preparation;
 shutdown racing with creation must not attach a half-live child.
 
-A new optional model keeps the parent's provider and billing route. A schema is
+A new optional `model` keeps the parent's provider and billing route. Alternatively,
+`offering` selects an exact registered vendor/endpoint/model identity; supplying
+both refuses. Resolve that identity through the owning application's model graph,
+not by copying credentials or falling back to a different offering.
+
+Keep these choices in a value-like `ChildLaunchOptions` declaration in Common.
+An explicit `primary_skill` selects a primary from the creator's parsed catalog.
+Initialize its dependencies, but do not inherit unrelated parent startup
+selections. Without that override, preserve ordinary skill inheritance.
+The selected primary must grant the operations its assignment requires, including
+`submit` for delegated completion and `wait_for_job` for command observation.
+Selecting a primary does not silently add either tool.
+
+For a fresh child, `confined: true` selects `children/<id>` as its writable root.
+This keeps project files, caches, records and Jobs within the existing child home
+and preserves restart discovery without a second registry. Validate identity,
+submission schema and sandbox narrowing before creating the directory through
+the parent's Sandbox; open the child Sandbox only after its root exists.
+`process_read_paths` supplies read-only command imports: omission inherits,
+an empty array drops them, and a confined parent cannot grant broader access.
+These imports do not enlarge built-in file-tool access. Verify launch arguments
+through actual tool dispatch, not only direct construction calls.
+Read registered launch policy before resolving the model for a reused ID. Preserve
+its exact offering as well as its sandbox and primary; a new assignment must not
+silently inherit the creator's route. Public shutdown retires automatic restart,
+not the saved launch policy. Explicit reuse preserves that policy while starting
+a new assignment; prepared files alone do not imply a previous Agent.
+
+A confined compiler process can still be unable to run a grader: the default
+network denial includes local HTTP fakes. Do not solve that by running student
+code unrestricted. A trusted host can run the unchanged grader and prepare each
+candidate through the same Sandbox, granting outbound TCP only to the grader's
+assigned host-local port. Validate the numeric loopback HTTP origin and keep the
+launcher, wrapper and runtime outside student write authority. The candidate
+gets neither listening permission nor a general local-service grant; ordinary
+Agent commands remain network-denied. Replace the wrapper process so the grader
+retains its candidate PID, stdio and exit status. See the
+[confined grading harness](../scripts/confined-grading/README.md) for the narrow
+Chapter 1 adapter and its platform limits. Parent-mediated grading is not an
+autonomous model-facing tool, and a fake grade does not replace the live exercise.
+
+A schema is
 validated and copied before construction effects. Descendants without an
 explicit schema get the default contract, not their parent's answer format.
 Configuration and templates may be immutable values; live clients, activation
@@ -384,7 +425,7 @@ The tool arguments are small:
 
 | Tool | Arguments |
 | --- | --- |
-| `spawn_sub_agent` | `agent_id`, `task`, optional `model`, `submit_schema`, and `working_context_tokens` |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model` or `offering`, `primary_skill`, `confined`, `process_read_paths`, `submit_schema`, and `working_context_tokens` |
 | `join_agents` | optional `agent_ids`; omitted means all current children |
 | `agents_status` | none |
 | `shutdown_agent` | `agent_id` |
@@ -488,8 +529,30 @@ remain separate. A wake returns the same running handle, not a cancelled task.
 
 The actor records human hints before pulsing. Child notices use `HintReceived`
 with `Actor.Tool` and labeled question data, never system/developer instructions.
-An idle parent records that notice without starting inference; root-human
-questions stay in the human inbox rather than waking the root to answer itself.
+Recording is not scheduling. If the parent is idle, enqueue an empty model-turn
+trigger after recording the notice. Do not copy the notice into a second human
+message. If a model turn is already queued, it will see the recorded notices;
+coalesce the wake rather than queue redundant turns. During an active turn, mark
+the hint pending so the next request includes it after completed tool outcomes.
+A nested parent's prior submission must not stand for newly admitted work.
+
+The ordinary actor scheduler enforces pause: record incoming messages while paused,
+but defer inference until resume. Shutdown cancels queued work and unresolved
+questions instead of dispatching a wake. No goal reminder, observer, or polling
+loop is required for an idle recipient to run. Root-human questions remain the
+exception: they are addressed to the human, not to the root model, and must never
+wake that model to answer itself. Waking changes scheduling, not authority.
+
+Verify this at the actual provider boundary with a local fake: a question to an
+idle parent must cause one request containing the notice once, outside system
+instructions. Two questions received while paused must cause no request until
+resume, then share one turn. Busy delivery must reach the next request without
+cancelling its independent Job. Paused delivery followed by shutdown must produce
+no request and must settle the pending question. The runtime regression entry
+point is `dotnet run --project agent/Tests/Tests.csproj -- --message-wake-tests`
+from the repository root with the .NET 10 SDK. These source regressions supplement
+the chapter's historical grader; its score alone does not certify idle wake.
+
 Chat input uses actor-decided turn-or-hint admission. JSON `prompt` and `hint`
 retain their separate meanings. Displaying a human question observes the inbox;
 it does not consume it or create another pending-question store.

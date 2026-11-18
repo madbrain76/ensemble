@@ -650,11 +650,15 @@ static void RegisterOpenRouterOfferings(Application app, GlobalSettings settings
         return;
     }
     var vendor = new ModelVendor(app, "openrouter", "OpenRouter");
-    var endpoint = new ModelEndpoint(vendor, "api", "https://openrouter.ai/api/v1/messages",
-        Surface.Messages, binding);
-    _ = new Model(endpoint, "flint-v1_0-free", "recursive/flint-v1.0:free", "Flint v1.0 (free)",
-        new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144),
-        requestPolicy: new ModelRequestPolicy(toolSchemas: ToolSchemaPolicy.PatternLengthCompatibility));
+    var policy = new ModelRequestPolicy(toolSchemas: ToolSchemaPolicy.PatternLengthCompatibility,
+        maxOutputTokens: 32768);
+    var features = new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144);
+    // Keep the Chat identity stable. Retired Messages selections remain unavailable;
+    // never reinterpret their saved reasoning as Chat history.
+    var chat = new ModelEndpoint(vendor, "chat", "https://openrouter.ai/api/v1/chat/completions",
+        Surface.ChatCompletions, binding);
+    _ = new Model(chat, "flint-v1_0-free", "recursive/flint-v1.0:free",
+        "Flint v1.0 (free)", features, requestPolicy: policy);
 }
 
 // Subscription routes share the OpenAI vendor with API funding, so the picker
