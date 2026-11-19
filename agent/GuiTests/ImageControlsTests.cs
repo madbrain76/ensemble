@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 using Ensemble;
 using EnsembleGui;
@@ -113,6 +114,47 @@ static class ImageControlsTests
             await Send(Envelope(7, target, source));
             await Frame("image_accepted");
             Check(Images() == 2, "Refusals disrupted subsequent valid admission.");
+            // A document is rasterised in the listener, so every page enters History as an
+            // ordinary image part: no new wire shape and no new capability concept. The
+            // fixture is built here rather than embedded so its page count is auditable.
+            string document = Document(3);
+            int pagesBefore = Images();
+            await Send(new
+            {
+                type = "image_prompt", sequence = 8, agent_id = target, text = "WITH_DOCUMENT",
+                images = new[] { new { mime = "application/pdf", data = document } }
+            });
+            var paged = await Frame("image_accepted");
+            Check(Images() == pagesBefore + 3, "A three-page document did not enter History as three pages.");
+            Check(paged.GetProperty("images").GetArrayLength() == 3, "Acknowledgment did not report every page.");
+            var pageParts = agent.History().Events().SelectMany(e => e.Parts).OfType<BlobPart>().TakeLast(3).ToList();
+            Check(pageParts.Count == 3, "History does not hold three page parts.");
+            Check(pageParts.All(p => p.Mime == "image/png"), "Pages were retained under a non-image MIME.");
+            Check(pageParts.All(p => Convert.FromBase64String(p.Ref.Locator.Split(',')[1])[1] == (byte)'P'),
+                "A retained page is not a PNG.");
+            Check(pageParts.Select(p => p.Ref.Locator).Distinct().Count() == 3, "Distinct pages collapsed into one part.");
+            Check(agent.History().Events().SelectMany(e => e.Parts).OfType<TextPart>().Any(p => p.Text == "WITH_DOCUMENT"),
+                "Accompanying document text was lost.");
+            // Each page costs a slot, so a document longer than the message allowance is
+            // refused outright instead of being silently truncated: an answer about
+            // "page 5" of a truncated document would otherwise look entirely plausible.
+            await Send(new
+            {
+                type = "image_prompt", sequence = 9, agent_id = target,
+                images = new[] { new { mime = "application/pdf", data = Document(5) } }
+            });
+            var ceiling = await Frame("error");
+            Check(ceiling.GetProperty("image_sequence").GetInt64() == 9
+                && ceiling.GetProperty("message").GetString()!.Contains("5 pages"),
+                "Page ceiling was not correlated to its sequence or its count never reached the browser.");
+            Check(Images() == pagesBefore + 3, "An over-long document was admitted anyway.");
+            await Send(new
+            {
+                type = "image_prompt", sequence = 10, agent_id = target,
+                images = new[] { new { mime = "application/pdf", data = Convert.ToBase64String("not a document"u8.ToArray()) } }
+            });
+            await Frame("error");
+            Check(Images() == pagesBefore + 3, "A body claiming to be a document was admitted without a header check.");
             // Fill the remaining count allowance with tiny prepared images;
             // the next WebSocket image must be refused with its sequence intact.
             using var smallBitmap = new SKBitmap(4, 4);
@@ -120,12 +162,16 @@ static class ImageControlsTests
             using var smallImage = SKImage.FromBitmap(smallBitmap);
             using var smallPng = smallImage.Encode(SKEncodedImageFormat.Png, 100);
             var small = agent.PrepareImage(smallPng.ToArray()).Image;
-            for (int i = 0; i < 30; i++)
+            // Pages consumed slots above, so the fill count is derived rather than
+            // hard-coded: the budget that matters is the shared 32-image History total.
+            // The deficit is captured once; re-reading it each turn would shrink as
+            // fast as i grows and the allowance would never be filled.
+            for (int i = 0, deficit = 32 - Images(); i < deficit; i++)
                 await agent.PostAsync(new AgentInput(InputKind.Message, "fill", [small])).WaitAsync(token);
             int beforeRefusal = agent.History().Events().Length;
-            await Send(Envelope(8, target, source));
+            await Send(Envelope(11, target, source));
             var overflow = await Frame("error");
-            Check(overflow.GetProperty("image_sequence").GetInt64() == 8
+            Check(overflow.GetProperty("image_sequence").GetInt64() == 11
                 && overflow.GetProperty("message").GetString()!.Contains("micro_handoff"),
                 "Overflow refusal was not correlated or actionable.");
             Check(Images() == 32 && agent.History().Events().Length == beforeRefusal,
@@ -135,6 +181,7 @@ static class ImageControlsTests
             string trace = File.ReadAllText(tracePath);
             Check(trace.Contains("media_redacted") && !trace.Contains(source[..128]), "Trace retained source image bytes.");
             Check(!trace.Contains(retained.Ref.Locator.Split(',')[1][..128]), "Trace retained prepared image bytes.");
+            Check(!trace.Contains(document[..100]), "Trace retained the document's source bytes.");
         }
         finally
         {
@@ -148,5 +195,44 @@ static class ImageControlsTests
             }
         }
         Console.WriteLine("PASS GUI images: payloads, source preparation, explicit routing, duplicate refusal, control limits and trace privacy");
+    }
+
+    // A minimal but well-formed PDF: real xref offsets and a Helvetica text object, so
+    // poppler rasterises ink rather than a blank page. Page n reads "VERMILION PAGE n".
+    private static string Document(int pages)
+    {
+        var objects = new List<string>
+        {
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [" + string.Join(" ",
+                Enumerable.Range(0, pages).Select(index => (4 + index) + " 0 R")) + "] /Count " + pages + " >>",
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+        };
+        for (int page = 0; page < pages; page++)
+        {
+            objects.Add("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 100] /Resources << /Font << /F1 3 0 R >> >>"
+                + " /Contents " + (4 + pages + page) + " 0 R >>");
+        }
+        for (int page = 0; page < pages; page++)
+        {
+            string stream = "BT /F1 20 Tf 10 30 Td (VERMILION PAGE" + (page + 1) + ") Tj ET";
+            objects.Add("<< /Length " + Encoding.UTF8.GetByteCount(stream) + " >>\nstream\n" + stream + "\nendstream");
+        }
+        var body = new StringBuilder("%PDF-1.4\n");
+        var offsets = new List<int>();
+        for (int index = 0; index < objects.Count; index++)
+        {
+            offsets.Add(Encoding.UTF8.GetByteCount(body.ToString()));
+            body.Append((index + 1) + " 0 obj\n" + objects[index] + "\nendobj\n");
+        }
+        int crossReference = Encoding.UTF8.GetByteCount(body.ToString());
+        body.Append("xref\n0 " + (objects.Count + 1) + "\n0000000000 65535 f \n");
+        foreach (int offset in offsets)
+        {
+            body.Append(offset.ToString("D10") + " 00000 n \n");
+        }
+        body.Append("trailer\n<< /Size " + (objects.Count + 1) + " /Root 1 0 R >>\nstartxref\n" + crossReference
+            + "\n%%EOF\n");
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(body.ToString()));
     }
 }

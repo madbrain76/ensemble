@@ -24,12 +24,20 @@ class ImageComposer {
         this.panel.replaceChildren();
         for (const entry of this.entries) {
             const figure = document.createElement("figure");
-            const image = document.createElement("img");
-            image.src = entry.url;
-            image.alt = `Attached image ${this.entries.indexOf(entry) + 1}`;
+            const isDocument = entry.file.type === "application/pdf";
+            let preview;
+            if (isDocument) {
+                preview = document.createElement("p");
+                preview.className = "attachment-kind";
+                preview.textContent = "PDF";
+            } else {
+                preview = document.createElement("img");
+                preview.src = entry.url;
+                preview.alt = `Attached image ${this.entries.indexOf(entry) + 1}`;
+            }
             const caption = document.createElement("figcaption");
-            caption.textContent = entry.state === "ready" ? entry.file.name || "Pasted image"
-                : entry.state === "reading" ? "Reading image…" : "Read failed — remove this image";
+            caption.textContent = entry.state === "ready" ? entry.file.name || (isDocument ? "Attached document" : "Pasted image")
+                : entry.state === "reading" ? "Reading attachment…" : "Read failed — remove this attachment";
             const remove = document.createElement("button");
             remove.type = "button";
             remove.className = "btn btn-quiet";
@@ -37,7 +45,7 @@ class ImageComposer {
             remove.setAttribute("aria-label", `Remove image ${this.entries.indexOf(entry) + 1}`);
             remove.disabled = !!this.pending;
             remove.onclick = () => { this.remove(entry); this.render(); };
-            figure.append(image, caption, remove);
+            figure.append(preview, caption, remove);
             this.panel.append(figure);
         }
         this.panel.hidden = !this.hasImages;
@@ -120,8 +128,9 @@ class ImageComposer {
             this.notify("Attachment refused: at most four images and 64 MiB total source data.");
             return;
         }
-        if (files.some(file => !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type) || !file.size)) {
-            this.notify("Attachment refused: use nonempty PNG, JPEG, WebP or GIF files. The server validates pixels and refuses animation.");
+        if (files.some(file => !["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"]
+            .includes(file.type) || !file.size)) {
+            this.notify("Attachment refused: use nonempty PNG, JPEG, WebP, GIF or PDF files. The server validates pixels and refuses animation; a PDF is sent as page images.");
             return;
         }
         this.agent = agent;

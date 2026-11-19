@@ -323,6 +323,11 @@ body.compact #transcript { padding: .3rem; }
 #image-previews figure { margin: 0; flex: 0 0 8rem; border: 1px solid var(--edge); border-radius: .3rem; padding: .25rem; }
 #image-previews img { width: 100%; height: 5rem; object-fit: contain; }
 #image-previews figcaption { font-size: .8em; overflow-wrap: anywhere; }
+/* A document has no pixels before upload, so its chip states the kind in the space an
+   <img> would take; an <img> pointed at a PDF would render a broken-image glyph. */
+#image-previews .attachment-kind { margin: 0; height: 5rem; display: flex; align-items: center;
+ justify-content: center; font-weight: 600; letter-spacing: .08em; color: var(--muted);
+ border: 1px dashed var(--edge); border-radius: .2rem; }
 #image-previews button { min-height: 44px; width: 100%; }
 #image-status, #discard-image-draft { grid-column: 1 / -1; margin: 0; }
 

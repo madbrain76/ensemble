@@ -30,6 +30,10 @@ public sealed class ImageBudgetExceededException : InvalidOperationException
         "Image request exceeds 32 images or 32 MiB of image payloads. " +
         "No existing images were removed. Checkpoint with micro_handoff before adding more images. " +
         "If the saved context already exceeds the limit, use Clear tools for tool images before retrying.") { }
+
+    // Document refusals are budget refusals with document-specific guidance, so they
+    // travel on the one exception channel whose message the browser is allowed to show.
+    public ImageBudgetExceededException(string message) : base(message) { }
 }
 
 public sealed partial class Engine

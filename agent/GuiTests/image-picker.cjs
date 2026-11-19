@@ -77,5 +77,26 @@ const assert = require('node:assert/strict');
     assert.equal(await page.locator('#text').inputValue(), 'preserve this caption');
     await page.locator('#previews button').click();
     console.log('PASS 64-MiB source ceiling, >32-MiB source read, and refusal preserves editable draft');
+    // A document cannot be previewed as an <img> — pointing one at a PDF renders a
+    // broken-image glyph — so the chip states the kind instead. Pages are the
+    // server's business; the browser only has to ask for them.
+    const html = require('node:fs').readFileSync(path.resolve(__dirname, '../gui/wwwroot/index.html'), 'utf8');
+    assert.match(html, /accept="[^"]*application\/pdf/, 'The picker does not offer PDF files.');
+    const document = Buffer.from('JVBERi0xLjQKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0tpZHNbNCAwIFJdL0NvdW50IDE+PgplbmRvYmoKMyAwIG9iago8PC9UeXBlL0ZvbnQvU3VidHlwZS9UeXBlMS9CYXNlRm9udC9IZWx2ZXRpY2E+PgplbmRvYmoKNCAwIG9iago8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL01lZGlhQm94WzAgMCAzMDAgMTAwXS9SZXNvdXJjZXM8PC9Gb250PDwvRjEgMyAwIFI+Pj4+L0NvbnRlbnRzIDUgMCBSPj4KZW5kb2JqCjUgMCBvYmoKPDwvTGVuZ3RoIDQ1Pj5zdHJlYW0KQlQgL0YxIDIwIFRmIDEwIDMwIFRkIChWRVJNSUxJT04gUEFHRTEpIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTQgMDAwMDAgbiAKMDAwMDAwMDEwNSAwMDAwMCBuIAowMDAwMDAwMTY4IDAwMDAwIG4gCjAwMDAwMDAyODAgMDAwMDAgbiAKdHJhaWxlcgo8PC9TaXplIDYvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgozNzIKJSVFT0YK', 'base64');
+    await choose({ name: 'synthetic.pdf', mimeType: 'application/pdf', buffer: document });
+    await page.waitForFunction(() => composer.hasImages && !composer.blocked);
+    assert.equal(await page.locator('#previews img').count(), 0, 'A PDF was previewed as an image.');
+    const chip = page.locator('#previews .attachment-kind');
+    assert.equal(await chip.count(), 1);
+    assert.equal(await chip.textContent(), 'PDF');
+    assert.match(await page.locator('#previews figcaption').first().textContent(), /synthetic\.pdf/);
+    await page.evaluate(() => composer.send(connection, 'a'));
+    const sent = await page.evaluate(() => frames.at(-1));
+    assert.equal(sent.images.length, 1);
+    assert.equal(sent.images[0].mime, 'application/pdf', 'The document was sent under a rewritten MIME type.');
+    assert.equal(sent.images[0].data, document.toString('base64'));
+    await page.evaluate(() => composer.acknowledge({ type: 'image_accepted', sequence: connection.imageSequence,
+      agent_id: 'a', images: [] }, connection));
+    console.log('PASS document chip, picker acceptance and unrewritten document MIME');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
