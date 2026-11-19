@@ -49,8 +49,13 @@ static class AssetCacheTests
             using var renderer = await client.GetAsync("/mounted/" + rendererPath, cancellation);
             Check(renderer.IsSuccessStatusCode && renderer.Content.Headers.ContentType?.MediaType == "text/javascript",
                 "Skill renderer must be served as JavaScript in the same immutable asset version");
-            Check((await client.GetStringAsync("/mounted/", cancellation)).Contains("./" + rendererPath),
-                "Skill renderer script reference must use the mounted asset version");
+            // The shipped page references the renderer loader statically, and the loader
+            // then fetches each skill renderer from this host's own version path - which
+            // the request above just proved. Asserting a static reference to the renderer
+            // itself would pin a mechanism that dynamic loading deliberately replaced;
+            // what still has to hold is that the loader cannot point anywhere else.
+            Check((await client.GetStringAsync("/mounted/", cancellation)).Contains("./" + mounted.Replace("app.js", "renderers.js")),
+                "Renderer loader must be referenced from the mounted asset version");
             Check(root == mounted, "Identical snapshots must have identical versions");
             string first = await Script("/first/");
             string second = await Script("/second/");
