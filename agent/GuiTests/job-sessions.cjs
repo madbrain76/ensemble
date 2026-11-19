@@ -39,6 +39,22 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
    });
    await page.waitForFunction(()=>document.querySelector('.job-session[data-job-handle="77"] .terminal-output')?.textContent.includes('SAFE'));
    assert.equal(await page.locator('.job-session[data-job-handle="77"]').count(),1);
+   // The reported fault, measured in the shipped page rather than only in a synthetic
+   // fixture: a job window whose command log stayed near-black under a light theme.
+   // The page's own theme is restored so the geometry assertions below are unaffected.
+   const grounds = await page.evaluate(() => {
+       const log = document.querySelector('.job-session[data-job-handle="77"] .terminal-output');
+       const original = document.documentElement.dataset.bsTheme || 'dark';
+       const ground = () => getComputedStyle(log).backgroundColor;
+       document.documentElement.dataset.bsTheme = 'dark';
+       const dark = ground();
+       document.documentElement.dataset.bsTheme = 'light';
+       const light = ground();
+       document.documentElement.dataset.bsTheme = original;
+       return { dark, light };
+   });
+   assert.equal(grounds.light, 'rgb(239, 241, 245)', 'light theme left the command log dark');
+   assert.notEqual(grounds.light, grounds.dark, 'the command log ignores the theme');
    await page.waitForSelector('[data-part-id="first"] .session-output-link', {state:'attached'});
    assert.equal(count,1,'Session must be the only initial output fetch owner');
    assert.equal(await page.locator('.job-session[data-job-handle="77"] > strong').textContent(),'Job 77 running');
