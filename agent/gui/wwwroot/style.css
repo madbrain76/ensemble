@@ -388,6 +388,29 @@ body.compact #transcript { padding: .3rem; }
 
 /* Continuing command output is a bounded log, not an interactive terminal. */
 .terminal-output { background: #14171b; color: #e7e9ee; max-height: 24rem; overflow: auto; white-space: pre-wrap; padding: .75rem; }
+/* A permanently dark block reads as a fault in a light theme, so the log follows the
+   theme like any other log. Its foreground palette needs re-tuning rather than reuse:
+   the pastels that carry a dark ground fall below 4.5:1 on a light one. Background
+   cells are already light tiles with dark ink, so they are correct on either ground.
+   The bright half of the palette separates by saturation, not lightness: on a light
+   ground any lighter colour is the colour that just failed the contrast floor. */
+:root[data-bs-theme="light"] .terminal-output { background: #eff1f5; color: #17253b; }
+:root[data-bs-theme="light"] .terminal-fg-0 { color: #5a6472; }
+:root[data-bs-theme="light"] .terminal-fg-1 { color: #b3261e; }
+:root[data-bs-theme="light"] .terminal-fg-2 { color: #14713a; }
+:root[data-bs-theme="light"] .terminal-fg-3 { color: #7a6000; }
+:root[data-bs-theme="light"] .terminal-fg-4 { color: #1a5fb4; }
+:root[data-bs-theme="light"] .terminal-fg-5 { color: #86338f; }
+:root[data-bs-theme="light"] .terminal-fg-6 { color: #0e5f68; }
+:root[data-bs-theme="light"] .terminal-fg-7 { color: #17253b; }
+:root[data-bs-theme="light"] .terminal-fg-8 { color: #616b7a; }
+:root[data-bs-theme="light"] .terminal-fg-9 { color: #c62f22; }
+:root[data-bs-theme="light"] .terminal-fg-10 { color: #177a3f; }
+:root[data-bs-theme="light"] .terminal-fg-11 { color: #6f5800; }
+:root[data-bs-theme="light"] .terminal-fg-12 { color: #2269c4; }
+:root[data-bs-theme="light"] .terminal-fg-13 { color: #9a3fa6; }
+:root[data-bs-theme="light"] .terminal-fg-14 { color: #147480; }
+:root[data-bs-theme="light"] .terminal-fg-15 { color: #0b1220; }
 .terminal-bold { font-weight: 700; }
 .terminal-fg-0 { color: #a5aab3; }
 .terminal-bg-0 { background-color: #a5aab3; color: #14171b; }
