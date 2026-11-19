@@ -179,7 +179,7 @@ The actor then records `HandoffRecorded` carrying a value-like `HandoffPart`. Hi
 3. Retaining the visible text, ordinary dialogue, system entries and skill manuals.
 4. Removing older active handoff parts and appending the newest note.
 
-Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in retained journal events; clearing Context does not rewrite those payloads. Their later retention is governed by §14.10–14.11.
+Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine renders it as checkpoint text in the disposable provider projection. Chat Completions reserves the first `system` message for instructions because some model templates reject a later `system` message. The checkpoint and other historical system entries stay in dialogue order as `user` messages on that surface. Canonical Context and snapshots retain the note's identity. Original notes and private parts remain in retained journal events; clearing Context does not rewrite those payloads. Their later retention is governed by §14.10–14.11.
 
 ### Newest-only governs active notes, not journal retention
 

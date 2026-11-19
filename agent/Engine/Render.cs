@@ -561,7 +561,7 @@ public sealed partial class Engine
 
             var message = new JsonObject
             {
-                ["role"] = entry.Actor == Actor.Agent ? "assistant" : entry.Actor == Actor.System ? "system" : "user",
+                ["role"] = entry.Actor == Actor.Agent ? "assistant" : "user",
                 ["content"] = text
             };
             if (calls.Count > 0)

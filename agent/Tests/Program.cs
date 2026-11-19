@@ -451,6 +451,7 @@ try
     if (args is ["--handoff-continuation-tests"] || args.Length == 0)
     {
         await AsyncCase("handoff resumes rather than repeating its checkpoint", ActorTests.HandoffContinuation);
+        await AsyncCase("Chat handoff continues with a single initial system message", MeterTests.ChatHandoffContinuation);
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");

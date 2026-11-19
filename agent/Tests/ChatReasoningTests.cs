@@ -4,6 +4,51 @@ using Application = Ensemble.Ensemble;
 
 internal static partial class MeterTests
 {
+    public static async Task ChatHandoffContinuation()
+    {
+        using var listener = Listen();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var agent = new Agent(app, new Configuration(Vendor.OpenAI, "checkpoint-test",
+                listener.Prefixes.Single(), primaryInstructions: "Continue the task.",
+                surface: Surface.ChatCompletions, disableStreaming: true));
+            agent.InstallTools();
+            var turn = agent.SendAsync("Checkpoint once, then continue.", deadline.Token);
+            var first = await listener.GetContextAsync().WaitAsync(deadline.Token);
+            await Reply(first, """
+                {"choices":[{"message":{"content":"Checkpointing now.","tool_calls":[{"id":"checkpoint","type":"function","function":{"name":"micro_handoff","arguments":"{\"text\":\"Resume from this checkpoint.\"}"}}]},"finish_reason":"tool_calls"}]}
+                """);
+
+            var continuation = await listener.GetContextAsync().WaitAsync(deadline.Token);
+            using var reader = new StreamReader(continuation.Request.InputStream, leaveOpen: true);
+            using var body = JsonDocument.Parse(await reader.ReadToEndAsync(deadline.Token));
+            var messages = body.RootElement.GetProperty("messages").EnumerateArray().ToArray();
+            var roles = messages.Select(message => message.GetProperty("role").GetString()).ToArray();
+            const string rejection = "System message must be at the beginning.";
+            if (roles.Skip(1).Contains("system"))
+            {
+                await Reply(continuation, JsonSerializer.Serialize(new { error = new { message = rejection } }), 400);
+                throw new InvalidOperationException("Loopback provider returned HTTP 400. " + rejection);
+            }
+            Check(roles.SequenceEqual(["system", "user", "assistant", "user"]),
+                "Chat must preserve the order of the conversation and the checkpoint.");
+            Check(messages[0].GetProperty("content").GetString()!.StartsWith("Continue the task.", StringComparison.Ordinal),
+                "Chat lost its primary instructions.");
+            string checkpoint = messages[^1].GetProperty("content").GetString()!;
+            Check(checkpoint.StartsWith("[Completed micro_handoff checkpoint]", StringComparison.Ordinal)
+                && checkpoint.EndsWith("Resume from this checkpoint.", StringComparison.Ordinal),
+                "Chat lost the completed checkpoint or its text.");
+            await Reply(continuation, """
+                {"choices":[{"message":{"content":"Resumed from the checkpoint."},"finish_reason":"stop"}]}
+                """);
+            Check(await turn.WaitAsync(deadline.Token) == "Resumed from the checkpoint.",
+                "Chat did not finish the original turn after the handoff.");
+        }
+        finally { listener.Stop(); app.Destroy(); }
+    }
+
     public static async Task OpenRouterChatRoundTrip()
     {
         using var listener = Listen();
