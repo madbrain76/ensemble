@@ -482,7 +482,7 @@ The same actor gate handles plain JSON and SSE; terminal reordering cannot erase
 observed stream order. Other models retain their existing explanation policy;
 `LLM_REQUIRE_EXPLANATION=1` remains an explicit opt-in.
 
-Both hosts accept `--reasoning-effort` and `--reasoning-summary`, overriding
+Both hosts accept `--effort` and `--reasoning-summary`, overriding
 `OPENAI_REASONING_EFFORT` and `OPENAI_REASONING_SUMMARY`. This row supports efforts
 `low`, `medium`, `high`, `xhigh`, and `max`. Verified summary selection is `auto`;
 `off` omits the summary request. Other values, including unverified `detailed`,

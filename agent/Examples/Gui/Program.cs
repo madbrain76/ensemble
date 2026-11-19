@@ -60,12 +60,12 @@ try
         }
         // The retired log flags are refused earlier with their own guidance, so they
         // are absent here: a typo must not be accepted as a legacy spelling.
-        if (flag is not ("--account" or "--agent-name" or "--base-url" or "--billing" or "--cache-lens" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--global-settings" or "--gui-auth-file" or "--gui-dir" or "--host" or "--model" or "--model-config" or "--port" or "--primary-skill" or "--process-read-paths" or "--prompt-cache-key" or "--public-origin" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--save" or "--settings" or "--skills-dir" or "--startup-skills" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--vendor" or "--wake-on-lan" or "--wake-timeout" or "--workspace") || i + 1 >= args.Length)
+        if (flag is not ("--account" or "--agent-name" or "--base-url" or "--billing" or "--cache-lens" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--global-settings" or "--gui-auth-file" or "--gui-dir" or "--host" or "--model" or "--model-config" or "--port" or "--primary-skill" or "--process-read-paths" or "--prompt-cache-key" or "--public-origin" or "--effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--save" or "--settings" or "--skills-dir" or "--startup-skills" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--vendor" or "--wake-on-lan" or "--wake-timeout" or "--workspace") || i + 1 >= args.Length)
         {
             throw new LaunchFlagException("Unknown or incomplete GUI flag: " + flag);
         }
         string value = args[++i];
-        if (flag is "--account" or "--agent-name" or "--billing" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--global-settings" or "--model-config" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--wake-on-lan" or "--wake-timeout")
+        if (flag is "--account" or "--agent-name" or "--billing" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--global-settings" or "--model-config" or "--effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--wake-on-lan" or "--wake-timeout")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -223,7 +223,7 @@ try
     // The value the operator typed, kept before the request policy fills in a
     // default: only a choice this launch actually made is worth asking the
     // provider to confirm.
-    string requestedEffort = Selected("--reasoning-effort", "OPENAI_REASONING_EFFORT");
+    string requestedEffort = Selected("--effort", "OPENAI_REASONING_EFFORT");
     var config = new Configuration(vendor, Selected("--model", "LLM_MODEL"), endpoint, key,
         requireToolExplanation: Env("LLM_REQUIRE_TOOL_EXPLANATION") == "true",
         disableStreaming: flags.ContainsKey("--no-stream") || Env("EN_DISABLE_STREAMING") == "1",

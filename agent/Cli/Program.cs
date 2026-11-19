@@ -119,7 +119,7 @@ static async Task<int> Run(string[] args)
         var remaining = new List<string>();
         for (int index = 0; index < args.Length; index++)
         {
-            if (args[index] is "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary")
+            if (args[index] is "--surface" or "--billing" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--effort" or "--reasoning-summary")
             {
                 string flag = args[index];
                 if (++index == args.Length || string.IsNullOrWhiteSpace(args[index]) || args[index].StartsWith("--"))
@@ -133,7 +133,7 @@ static async Task<int> Run(string[] args)
                     case "--account": account = args[index]; break;
                     case "--credentials-dir": credentialsDirectory = args[index]; break;
                     case "--codex-auth-file": codexAuthFile = args[index]; break;
-                    case "--reasoning-effort": reasoningEffort = args[index]; break;
+                    case "--effort": reasoningEffort = args[index]; break;
                     case "--reasoning-summary": reasoningSummary = args[index]; break;
                 }
             }

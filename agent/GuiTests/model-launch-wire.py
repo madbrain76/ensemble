@@ -170,7 +170,7 @@ def run(dotnet, gui, directory):
         command = [dotnet, gui, "--workspace", str(directory), "--data-dir", str(directory / "data"),
             "--agent-name", "wire", "--port", str(port), "--vendor", "openai", "--model", "gpt-6-astra",
             "--base-url", base + "/launch", "--surface", "responses", "--billing", "api", "--no-stream",
-            "--reasoning-effort", "high", "--reasoning-summary", "off", "--prompt-cache-key", "launch-cache",
+            "--effort", "high", "--reasoning-summary", "off", "--prompt-cache-key", "launch-cache",
             "--no-save", "--model-config", str(directory / "models.json"), "--skills-dir", str(directory / "skills"),
             "--primary-skill", "primary"]
         with (directory / "stdout.log").open("wb") as stdout, (directory / "stderr.log").open("wb") as stderr:
